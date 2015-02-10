@@ -25,7 +25,7 @@ venn(list("LE-vs-L" = rownames(le), "LEKU-vs-L" = rownames(leku),
 # 		  LE.down = rownames(le.down),
 # 		  LEKU.up = rownames(leku.up),
 # 		  LEKU.down = rownames(leku.down)), F, "LE-LEKU-up-down")
-	
+
 ##### VENN diagrams of gene sets based ANOVA analysis
 venn(list("LE-vs-L" = res.l.le$gene_id,
 	"LEKU-vs-L" = res.l.leku$gene_id,
@@ -48,7 +48,7 @@ plot_genes(head(t$ensembl_gene_id, 40), "test")
 # expression of these genes hasn't changed in le condition
 t <- res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
 plot_genes(head(t[order(t$padj),]$ensembl_gene_id, 40), "test")
-	
+
 
 
 
