@@ -1,0 +1,228 @@
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[12pt]{article} % Default font size is 12pt, it can be changed here
+
+\usepackage{geometry} % Required to change the page size to A4
+\geometry{a4paper} % Set the page size to be A4 as opposed to the default US Letter
+
+\usepackage{graphicx} % Required for including pictures
+
+\usepackage{float} % Allows putting an [H] in \begin{figure} to specify the exact location of the figure
+\usepackage{wrapfig} % Allows in-line images such as the example fish picture
+
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+
+\linespread{1.2} % Line spacing
+
+%\setlength\parindent{0pt} % Uncomment to remove all indentation from paragraphs
+
+\graphicspath{{pictures/}} % Specifies the directory where pictures are stored
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\begin{titlepage}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}} % Defines a new command for the horizontal lines, change thickness here
+
+\center % Center everything on the page
+
+\textsc{\LARGE Babraham Institute}\\[1.5cm] % Name of your university/college
+
+\HRule \\[0.4cm]
+{ \huge \bfseries Polysome project}\\[0.4cm] % Title of your document
+\HRule \\[1.5cm]
+
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+\emph{Author:}\\
+Vladimir \textsc{Kiselev} % Your name
+\end{flushleft}
+\end{minipage}
+~
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Collaborator:} \\
+Manuel \textsc{Diaz-Munoz} % Supervisor's Name
+\end{flushright}
+\end{minipage}\\[4cm]
+
+{\large \today}\\[3cm] % Date, change the \today to a set date if you want to be precise
+
+%\includegraphics{Logo}\\[1cm] % Include a department/university logo - this will require the graphicx package
+
+\vfill % Fill the rest of the page with whitespace
+
+\end{titlepage}
+
+%----------------------------------------------------------------------------------------
+%	TABLE OF CONTENTS
+%----------------------------------------------------------------------------------------
+
+\tableofcontents % Include a table of contents
+
+\newpage % Begins the essay on a new page instead of on the same page as the table of contents 
+
+%----------------------------------------------------------------------------------------
+%	Polysome data
+%----------------------------------------------------------------------------------------
+
+\section{Polysome data} % Major section
+
+\subsection{Pre-processing (process\_data() function)} % Sub-section
+By removing HTML header in the original `original-data\textbackslash p28\_expression\_genes.txt' file I obtained `original-data\textbackslash p28\_expression\_genes\_edited.txt' file, which I used as the main data file. I imported data from this file into R, then removed Poly\_L\_2\_17 sample from the data and then created data tables for ANOVA analysis (`files/data-table.rds'), clustering and preliminary analysis (`files/data-matrix-norm.rds'), plotting (`files/plot-table.rds') and annotating (`files/ann-table.rds'; annotation data was downloaded from Ensembl Biomart).
+
+\subsection{Preliminary data analysis}
+
+\subsubsection{Correlations in RNA-Seq data}
+Correlations of read numbers in 12 RNA-Seq samples are shown in Fig. \ref{fig:rna-seq-correlations}. The correlation is very high (even between different conditions).
+
+\subsubsection{Correlations in Polysome data}
+All 156 Polysome sample were correlated against each other (Fig. \ref{fig:polysome-correlations}). The correlation between samples is quite low (even for technical replicates).
+
+\subsubsection{Principal Component Analysis (PCA) of Polysome data}
+PCA analysis of of the Polysome (Figs. \ref{fig:pca}) shows that \(\sim 37\%\) of data variance is explained by the first 3 principal components components. Projections of the data on these 3 components are shown in Figs. \ref{fig:pca12}, \ref{fig:pca13} and \ref{fig:pca23}.
+
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.9\linewidth]{../plots/rna-seq-correlations.pdf}}
+\caption{Correlations of RNA-Seq samples.}
+\label{fig:rna-seq-correlations}
+\end{figure}
+
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=1.22\linewidth]{../plots/polysome-correlations.pdf}}
+\caption{Correlations of Polysome samples.}
+\label{fig:polysome-correlations}
+\end{figure}
+
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.7\linewidth]{../plots/pca.pdf}}
+\caption{PCA: variations explained by each principal component}
+\label{fig:pca}
+\end{figure}
+
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.7\linewidth]{../plots/pca12.pdf}}
+\caption{PCA: samples in PC1-PC2 projection}
+\label{fig:pca12}
+\end{figure}
+
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.7\linewidth]{../plots/pca13.pdf}}
+\caption{PCA: samples in PC1-PC3 projection}
+\label{fig:pca13}
+\end{figure}
+
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.7\linewidth]{../plots/pca23.pdf}}
+\caption{PCA: samples in PC2-PC3 projection}
+\label{fig:pca23}
+\end{figure}
+
+
+
+\subsection{ANOVA analysis (anova\_analysis() function)} % Sub-section
+Analysis was performed on data from `files/data-table.rds' file. I performed two-way ANOVA analysis (two indpendent variables - condition and polysome fraction) using anova() R function with a linear model of the following form: $lm(value\sim cond+pf+cond*pf)$, where $cond$ is the condition variable with values of `L', `LE' or `LEKU' and $pf$ is a polysome fraction variable with values in the range $[4:16]$. Obtained p-values were adjusted using Benjamini \& Hochberg correction. Three main comparisons were performed: LE vs L, LE vs LEKU and LEKU vs L.
+
+\subsection{Analysis of ANOVA results} % Sub-section
+Let us consider LE vs L comparison. ANOVA analysis provides three adjusted p-values correspoding to $cond$, $pf$ variables and their interaction $cond*pf$. To better understand biological meaning of significance of all these three variables I plotted top 10 of the most significant genes for each variable (Fig. \ref{fig:polysome-L-LE-cond}, \ref{fig:polysome-L-LE-pf} and \ref{fig:polysome-L-LE-cond-pf}). These figures show that significant variation of $cond$ variable is the most biologically relevant since it recovers genes with interesting polysome fraction shift effect. In contrast, significant variation of $pf$ variable only account for increase or decrease in the gene polysome fractionation, but does not account for any shift in fractionation. Interaction term $cond*pf$ can be biologically relevant but to exclude some artificial effects one has to require significant difference in $cond$ variable. Thus, I use the following logical expression to obtain all biological important genes in each comparison: $padj.cond < 0.01 \mid (padj.int < 0.01 \land padj.cond < 0.05)$.
+
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.9\linewidth]{../plots/L-LE-condition.pdf}}
+\caption{Top 10 significant genes for $cond$ variable in comparisons of LE vs L.}
+\label{fig:polysome-L-LE-cond}
+\end{figure}
+
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.9\linewidth]{../plots/L-LE-pf.pdf}}
+\caption{Top 10 significant genes for $pf$ variable in comparisons of LE vs L.}
+\label{fig:polysome-L-LE-pf}
+\end{figure}
+
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.9\linewidth]{../plots/L-LE-condition-pf.pdf}}
+\caption{Top 10 significant genes for $cond*pf$ variable in comparisons of LE vs L.}
+\label{fig:polysome-L-LE-cond-pf}
+\end{figure}
+
+Using the logical expression above I obtained 4080 genes in LE vs L comparison, 1389 genes in LE vs LEKU comparison and 2941 genes in LEKU vs L comparison. These gene sets were overlapped, plotted using Venn diagram and are shown in Fig. \ref{fig:venn-polysome}
+
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.45\linewidth]{../plots/venn-polysome.pdf}}
+\caption{Comparison of ANOVA gene sets in polysome fractions analysis.}
+\label{fig:venn-polysome}
+\end{figure}
+
+
+%----------------------------------------------------------------------------------------
+%	RNA-Seq data
+%----------------------------------------------------------------------------------------
+
+\section{RNA-Seq data} % Major section
+For differential expression analysis I used already processed and aligned RNA-Seq data (BAM files provided by Manuel). BAM files were converted into SAM files using Samtools (`samtools.sh' script). Read counts in gene features were calculated using HT-Seq tool and `Mus\_musculus.GRCm38.78.gtf' feature file downloaded from Ensembl (`htseq.sh' script). Differential expression analysis was performed using DESeq2 package based on the obtained read count files. The same condition comparisons as in polysome analysis (LE vs L, LE vs LEKU and LEKU vs L) were tested for differential expression. I used the same 0.01 threshold for adjusted p-values in differential expression analysis. For LE vs L comparison 8109 were obtained, for LE vs LEKU comparison 7283 genes were obtained and for LE vs LEKU comparison 4534 genes were obtained. A summarized Venn diagram showing an overlap of these three gene sets is shown in Fig. \ref{fig:venn-rna-seq}.
+
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.45\linewidth]{../plots/venn-rna-seq.pdf}}
+\caption{Comparison of RNA-Seq gene sets in differential expression analysis.}
+\label{fig:venn-rna-seq}
+\end{figure}
+
+%----------------------------------------------------------------------------------------
+%	Correlations
+%----------------------------------------------------------------------------------------
+
+\section{Correlations between Polysome and RNA-Seq data} % Major section
+Polysome and RNA-Seq genes sets obtained in three types of comparisons were overlapped, the Venn diagrams are shown below.
+
+\subsection{LE vs L} % Sub-section
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.45\linewidth]{../plots/venn-correlations-LE-L.pdf}}
+\caption{Overlap of Polysome and RNA-Seq gene sets corresponding to LE vs L comparison.}
+\label{fig:venn-correlations-LE-L}
+\end{figure}
+
+Clustering of genes by their polysome profiles is shown in Fig. \ref{fig:correlations-LE-L}
+
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.76\linewidth]{../plots/clusts-corr-av-all.pdf}}
+\caption{Average polysome profiles of clustered genes in 3 groups defined in Fig. \ref{fig:venn-correlations-LE-L}.}
+\label{fig:correlations-LE-L}
+\end{figure}
+
+\subsection{LE vs LEKU} % Sub-section
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.45\linewidth]{../plots/venn-correlations-LE-LEKU.pdf}}
+\caption{Overlap of Polysome and RNA-Seq gene sets corresponding to LE vs LEKU comparison.}
+\label{fig:venn-correlations-LE-LEKU}
+\end{figure}
+
+\subsection{LEKU vs L} % Sub-section
+\begin{figure}[H] % Example image
+\center{\includegraphics[width=0.45\linewidth]{../plots/venn-correlations-LEKU-L.pdf}}
+\caption{Overlap of Polysome and RNA-Seq gene sets corresponding to LEKU vs L comparison.}
+\label{fig:venn-correlations-LEKU-L}
+\end{figure}
+
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+% \begin{thebibliography}{99} % Bibliography - this is intentionally simple in this template
+
+% \bibitem[Figueredo and Wolf, 2009]{Figueredo:2009dg}
+% Figueredo, A.~J. and Wolf, P. S.~A. (2009).
+% \newblock Assortative pairing and life history strategy - a cross-cultural
+%   study.
+% \newblock {\em Human Nature}, 20:317--330.
+ 
+% \end{thebibliography}
+
+%----------------------------------------------------------------------------------------
+
+\end{document}
