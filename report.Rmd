@@ -13,8 +13,15 @@ summary(cars)
 
 You can also embed plots, for example:
 
-```{r, echo=FALSE}
-plot(cars)
+```{r, echo=FALSE, cache=FALSE, warning=FALSE, purl=FALSE, message=FALSE}
+source("functions.R")
+initialize_gene_sets()
+t <- res.l.le.deseq[!(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
+t <- t[order(t$gene_length),]
+p <- ggplot(t, aes(gene_length)) +
+        geom_histogram() +
+	scale_x_log10()
+p
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
