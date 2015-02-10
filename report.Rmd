@@ -1,91 +1,151 @@
 ---
-title: "Report for Polysome Fraction project in collaboration with Manuel Diaz-Munoz"
+title: "report"
 author: "Vladimir Kiselev"
-output: rmarkdown::tufte_handout
+date: "10 February 2015"
+output:
+  pdf_document:
+    number_sections: yes
+    toc: yes
 ---
 
-# Introduction
+# Polysome data
 
-The Tufte-\LaTeX\ [^tufte_latex] document classes define a style similar to the style Edward Tufte uses in his books and handouts. Tufte’s style is known for its extensive use of sidenotes, tight integration of graphics with text, and well-set typography. 
+## Pre-processing (process_data() function)
 
-# Headings
+By removing HTML header in the original **original-data/p28_expression_genes.txt** file I obtained **original-data/p28_expression_genes_edited.txt** file, which I used as the main data file. I imported data from this file into R, then removed **Poly_L_2_17** sample from the data and then created data tables for statistical tests (**files/data-matrix.rds**), clustering and preliminary analysis (**files/data-matrix-norm.rds**), plotting (**files/plot-table.rds**) and annotating (**files/ann-table.rds**; annotation data was downloaded from Ensembl Biomart).
 
-This style provides a- and b-heads (that is, `#` and `##`), demonstrated above.
-An error is emitted if you try to use `###` and smaller headings.
+## Correlations between samples
+All 156 Polysome sample were correlated against each other. The correlation between samples is quite low (even for technical replicates).
 
-\newthought{In his later books}[^books_be], Tufte starts each section with a bit of vertical space, a non-indented paragraph, and sets the first few words of the sentence in small caps. To accomplish this using this style, use the `\newthought` command as demonstrated at the beginning of this paragraph.
+```{r, echo=FALSE, cache=TRUE, fig.width=10, fig.height=10}
+library(gplots)
+cor_heatmap <- function(count.matrix, name) {
+        # plot a correlation matrix from a count matrix
+        # calculate pearson's correlation coefficients
+        cor.matrix <- cor(count.matrix, method = "pearson")
+        # plot correlation matrix in a file with 'name'
+        #   plot(1)
+        heatmap.2(cor.matrix, Rowv = FALSE, Colv = FALSE, dendrogram = "none", col=bluered(9), breaks = 10, trace = "none", keysize = 0.5)
+}
+d <- readRDS("files/data-matrix-norm.rds")
 
-# Figures
+cols <- colnames(d[,2:157])
+j <- 4
+for(i in 1:13){
+  cols[grep(paste0("LUL1._e", i, "_"), cols)] <- paste0("L_", j)
+  j <- j + 1
+}
+j <- 4
+for(i in 14:26){
+  cols[grep(paste0("LUL1._e", i, "_"), cols)] <- paste0("LE_", j)
+  j <- j + 1
+}
+j <- 4
+for(i in 27:39){
+  cols[grep(paste0("LUL1._e", i, "_"), cols)] <- paste0("LEKU_", j)
+  j <- j + 1
+}
+colnames(d)[2:157] <- cols
+tmp <- as.matrix(d[,2:157])
+cor_heatmap(tmp[,order(colnames(tmp))], "polysome")
+```
 
-## Margin Figures
+## Principal Component Analysis (PCA) of Polysome data
+PCA analysis of of the Polysome shows that ~37% of data variance is explained by the first 3 principal components components.
 
-Images and graphics play an integral role in Tufte's work. To place figures or tables in the margin you can use the `fig.margin` knitr chunk option. For example:
-
-```{r, fig.margin = TRUE, fig.cap = "Sepal length vs. petal length, colored by species"}
+```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=5}
 library(ggplot2)
-qplot(Sepal.Length, Petal.Length, data = iris, color = Species)
+res <- prcomp(d[,2:157])
+screeplot(res)
+```
+```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=5}
+data <- as.data.frame(res$rotation[,1:3])
+data$cond <- rownames(data)
+data$cond <- unlist(lapply(strsplit(data$cond, "\\."), function(x){return(x[1])}))
+data$pf <- as.numeric(unlist(lapply(strsplit(data$cond, "_"), function(x){return(x[2])})))
+data$cond <- unlist(lapply(strsplit(data$cond, "_"), function(x){return(x[1])}))
+ggplot(data, aes(PC1,PC2)) +
+geom_point(aes(shape = cond, color = as.factor(pf))) +
+scale_size(range = c(3, 6)) +
+theme_bw()
+```
+```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=5}
+ggplot(data, aes(PC2,PC3)) +
+geom_point(aes(shape = cond, color = as.factor(pf))) +
+scale_size(range = c(3, 6)) +
+theme_bw()
+```
+```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=5}
+ggplot(data, aes(PC1,PC3)) +
+geom_point(aes(shape = cond, color = as.factor(pf))) +
+scale_size(range = c(3, 6)) +
+theme_bw()
 ```
 
-Note the use of the `fig.cap` chunk option to provide a figure caption. You can adjust the proportions of figures using the `fig.width` and `fig.height` chunk options. These are specified in inches, and will be automatically scaled down to fit within the handout margin.
+## Statistical analysis
 
-## Equations
+To identify changes in polysome fraction profile DESeq2 package was used (it can be used with any sequencing count data). First, a GLM (read.counts ~ condition + polysome.fraction + condition:polysome.fraction) was estimated for polysome data and, second, the likelihood ratio test was performed between the original and a reduced (read.counts ~ polysome.fraction) GLMs.
 
-You can also include \LaTeX\ equations in the margin by explicitly invoking the `marginfigure` environment.
+# RNA-Seq data
 
-\begin{marginfigure}
-$$\frac{d}{dx}\left( \int_{0}^{x} f(u)\,du\right)=f(x).$$
-\caption{An equation}
-\end{marginfigure}
+## Correlation between samples
 
-Note the use of the `\caption` command to add additional text below the equation.
+Correlations of read numbers in 12 RNA-Seq samples are very high (even between different conditions):
 
-## Full Width Figures
+```{r, echo=FALSE, message=FALSE, cache=TRUE, fig.width=10, fig.height=10}
+library(DESeq2)
+count_matrix_from_files <- function(files, normalized) {
+        # this function create a count matrix from raw htseq read counts files
+        # it uses DESeq2 library to construct the matrix
+        # create a design matrix for DESeq2
+        sample.name <- sapply(strsplit(files, "_trimmed"), "[[", 1)
+        condition <- sapply(strsplit(sample.name, "_"), "[[", 1)
+        samples <- data.frame(sample.name = sample.name,
+        file.name = paste0("htseq-count/", files),
+        condition = condition)
+        samples$condition <- factor(samples$condition,
+        levels = unique(samples$condition))
+        # import data from files using 'samples' design matrix
+        cds <- DESeqDataSetFromHTSeqCount(sampleTable = samples,
+        directory = ".", design = ~ condition)
+        # if normalized is TRUE then the count matrix is normalized by library size
+        # using estimateSizeFactors function of DESeq2
+        if (normalized) {
+                cds <- estimateSizeFactors(cds)
+                return(counts(cds, normalized = TRUE))
+        } # otherwise return the raw matrix
+        else {return(counts(cds))}
+}
 
-You can arrange for figures to span across the entire page by using the `fig.fullwidth` chunk option. 
-
-```{r, fig.width = 10, fig.height = 2, fig.fullwidth = TRUE, fig.cap = "Full width figure"}
-qplot(wt, mpg, data=mtcars, colour=factor(cyl))
+files <- list.files("htseq-count/", full.names = FALSE)
+count.matrix <- count_matrix_from_files(files, T)
+colnames(count.matrix) <- unlist(lapply(strsplit(colnames(count.matrix), "_"), function(x){return(x[2])}))
+count.matrix <- count.matrix[,order(colnames(count.matrix))]
+cor_heatmap(count.matrix, "rna-seq")
 ```
 
-Note the use of the `fig.width` and `fig.height` chunk options to establish the proportions of the figure. Full width figures look much better if their height is minimized.
+## Statistical analysis
+For differential expression analysis I used already processed and aligned RNA-Seq data (BAM files provided by Manuel). BAM files were converted into SAM files using Samtools (**samtools.sh** script). Read counts in gene features were calculated using HT-Seq tool and **Mus\_musculus.GRCm38.78.gtf** feature file downloaded from Ensembl (**htseq.sh** script). Differential expression analysis was performed using DESeq2 package based on the obtained read count files. Condition comparisonsLE vs L, LE vs LEKU and LEKU vs L were tested for differential expression. 0.01 threshold of adjusted p-values was used as level of significance.
 
-## Main Column Figures
+Number of genes in each genes set:
 
-Besides margin and full width figures, you can of course also include figures constrained to the main column.
 
-```{r, fig.cap = "Another figure"}
-qplot(factor(cyl), mpg, data = mtcars, geom = "boxplot")
+LE vs L: 8109
+
+LEKU vs L: 7283
+
+LE vs LEKU: 4534
+
+
+A summarized Venn diagram showing an overlap of these three gene sets:
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, fig.width=9, fig.height=6, fig.align='center'}
+library(Vennerable)
+venn <- function(list, is.weights) {
+  v <- Venn(list)
+  plot(v, doWeights = is.weights)
+}
+venn(list("LE-vs-L" = rownames(le), "LEKU-vs-L" = rownames(leku),
+        "LE-vs-LEKU" = rownames(le.leku)), T)
 ```
-
-# Sidenotes
-
-One of the most prominent and distinctive features of this style is the extensive use of sidenotes. There is a wide margin to provide ample room for sidenotes and small figures. Any use of a footnote will automatically be converted to a sidenote. ^[This is a sidenote that was entered using a footnote.] 
-
-If you'd like to place ancillary information in the margin without the sidenote mark (the superscript number), you can use the `\marginnote` command. \marginnote{This is a margin note.  Notice that there isn't a number preceding the note.}
-
-Note also that the two footnote references (`tufte_latex` and `books_be`, both defined below) were also included in the margin on the first page of this document.
-
-# Tables
-
-You can use the **xtable** package to format \LaTeX\ tables that integrate well with the rest of the Tufte handout style. Note that it's important to set the `xtable.comment` and `xtable.booktabs` options as shown below to ensure the table is formatted correctly for inclusion in the document.
-
-```{r, results='asis'}
-library(xtable)
-options(xtable.comment = FALSE)
-options(xtable.booktabs = TRUE)
-xtable(head(mtcars[,1:6]), caption = "First rows of mtcars")
-```
-
-
-[^tufte_latex]: https://code.google.com/p/tufte-latex/
-[^books_be]: http://www.edwardtufte.com/tufte/books_be
-
-
-
-
-
-
-
-
-
-
