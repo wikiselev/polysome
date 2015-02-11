@@ -93,6 +93,7 @@ To identify changes in polysome fraction profile DESeq2 package was used (it can
 Number of genes in each genes set:
 
 ```{r, echo=FALSE, cache=TRUE}
+source("functions.R")
 initialize_gene_sets()
 ```
 
@@ -116,7 +117,7 @@ LE vs LEKU: 1389
 Top 10 most significant genes in LE vs L comparison:
 
 ```{r, echo=FALSE, cache=TRUE}
-head(res.l.le.deseq[order(res.l.le.deseq$padj),], 10)
+head(res.l.le.deseq[order(res.l.le.deseq$padj), c(1,7,8,9)], 25)
 ```
 
 ```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
@@ -129,30 +130,52 @@ plot_genes <- function(gene.names){
                 labs(x = "Polysome fraction", y = "Read counts") +
                 theme_bw()
 }
-plot_genes(head(res.l.le.deseq[order(res.l.le.deseq$padj),], 10)$ensembl_gene_id)
+plot_genes(head(res.l.le.deseq[order(res.l.le.deseq$padj),], 25)$ensembl_gene_id)
 ```
 
 
-Top 10 most significant genes in LEKU vs L comparison:
+Top 25 most significant genes in LEKU vs L comparison:
 
 ```{r, echo=FALSE, cache=TRUE}
-head(res.l.leku.deseq[order(res.l.leku.deseq$padj),], 10)
+head(res.l.leku.deseq[order(res.l.leku.deseq$padj), c(1,7,8,9)], 25)
 ```
 
 ```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(res.l.leku.deseq[order(res.l.leku.deseq$padj),], 10)$ensembl_gene_id)
+plot_genes(head(res.l.leku.deseq[order(res.l.leku.deseq$padj),], 25)$ensembl_gene_id)
 ```
 
 
-Top 10 most significant genes in LEKU vs LE comparison:
+Top 25 most significant genes in LEKU vs LE comparison:
 
 ```{r, echo=FALSE, cache=TRUE}
-head(res.le.leku.deseq[order(res.le.leku.deseq$padj),], 10)
+head(res.le.leku.deseq[order(res.le.leku.deseq$padj), c(1,7,8,9)], 25)
 ```
 
 ```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(res.le.leku.deseq[order(res.le.leku.deseq$padj),], 10)$ensembl_gene_id)
+plot_genes(head(res.le.leku.deseq[order(res.le.leku.deseq$padj),], 25)$ensembl_gene_id)
 ```
+
+
+Let us now consider LE vs L comparison and plot top 25 polysome profiles for the shortest:
+
+```{r, echo=FALSE, cache=TRUE}
+head(res.l.le.deseq[order(res.l.le.deseq$gene_length), c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(res.l.le.deseq[order(res.l.le.deseq$gene_length),], 25)$ensembl_gene_id)
+```
+
+and for the longest genes:
+
+```{r, echo=FALSE, cache=TRUE}
+head(res.l.le.deseq[order(-res.l.le.deseq$gene_length), c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(res.l.le.deseq[order(-res.l.le.deseq$gene_length),], 25)$ensembl_gene_id)
+```
+
 
 # RNA-Seq data
 

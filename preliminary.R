@@ -15,25 +15,25 @@ rename_samples_plot <- function(d) {
 	j <- 4
 	for(i in 1:13){
 		d2[grep(paste0("LUL1._e", i, "_"), variable),cond:="L"]
-		d2[grep(paste0("LUL1._e", i, "_"), variable),pf:=j]	
+		d2[grep(paste0("LUL1._e", i, "_"), variable),pf:=j]
 		j <- j + 1;
 	}
 	j <- 4
 	for(i in 14:26){
 		d2[grep(paste0("LUL1._e", i, "_"), variable),cond:="LE"]
-		d2[grep(paste0("LUL1._e", i, "_"), variable),pf:=j]	
+		d2[grep(paste0("LUL1._e", i, "_"), variable),pf:=j]
 		j <- j + 1;
 	}
 	j <- 4
 	for(i in 27:39){
 		d2[grep(paste0("LUL1._e", i, "_"), variable),cond:="LEKU"]
-		d2[grep(paste0("LUL1._e", i, "_"), variable),pf:=j]	
+		d2[grep(paste0("LUL1._e", i, "_"), variable),pf:=j]
 		j <- j + 1;
 	}
-	d2 <- d2[,list(gene_id, value, cond, pf)]
+	d2 <- d2[,list(ensembl_gene_id, value, cond, pf)]
 	d2$pf <- factor(d2$pf)
 	d2$cond <- factor(d2$cond)
-	d2$gene_id <- factor(d2$gene_id)
+	d2$ensembl_gene_id <- factor(d2$ensembl_gene_id)
 	return(d2)
 }
 

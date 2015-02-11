@@ -8,37 +8,44 @@ process_data <- function() {
 	for(i in 15:40) {
 		colnames(d) <- gsub(paste0("LUL16_e", i), paste0("LUL16_e", i-1), colnames(d))
 	}
-
+        colnames(d)[4] <- "ensembl_gene_id"
 	d1 <- d[,c(4,13:dim(d)[2])]
 	saveRDS(d1, "files/data-matrix.rds")
 
 	# prepare a table for clustering
 	tmp <- d1[,2:157]
 	tmp <- as.data.frame(t(scale(t(tmp), center = T, scale = T)))
-	tmp <- cbind(d1$gene_id, tmp)
+	tmp <- cbind(d1$ensembl_gene_id, tmp)
+	colnames(tmp)[1] <- "ensembl_gene_id"
 	saveRDS(tmp, "files/data-matrix-norm.rds")
 
+	# prepare gene name/length annotation table
+	ann <- read.table("annotations/genes-GRCm38.p3.txt", sep = "\t", header = T)
+	colnames(ann) <- c("ensembl_gene_id", "gene_start", "gene_end", "gene_name")
+	ann$gene_length <- abs(ann$gene_end - ann$gene_start)
+	ann <- ann[,c(1,4,5)]
+	saveRDS(as.data.table(ann), "files/ann-table.rds")
 
 	# prepare a data table for anova analysis
 	d2 <- rename_samples_plot(d1)
+        d2 <- as.data.table(merge(as.data.frame(d2), ann))
+        # 193 genes do not have gene names, so they are excluded-
+        # but they never appear in the any list of significant genes
+        # so we can safely ignore them
 	saveRDS(d2, "files/data-table.rds")
 	d3 <- as.data.frame(t(scale(t(d1[,2:157]), center = T, scale = T)))
-	d3 <- cbind(d1$gene_id, d3)
-	colnames(d3)[1] <- "gene_id"
+	d3 <- cbind(d1$ensembl_gene_id, d3)
+	colnames(d3)[1] <- "ensembl_gene_id"
 	d4 <- rename_samples_plot(d3)
+	d4 <- as.data.table(merge(as.data.frame(d4), ann))
 	saveRDS(d4, "files/data-table-norm.rds")
 
 	# prepare a data table for plotting
 	# average replicates - find mean and sd
-	d5 <- d2[,list(mean_value=mean(value), sd_value=sd(value)),by=c("gene_id", "cond", "pf")]
+	d5 <- d2[,list(mean_value=mean(value), sd_value=sd(value)),by=c("ensembl_gene_id", "gene_name", "cond", "pf")]
 	saveRDS(d5, "files/plot-table.rds")
-	d6 <- d4[,list(mean_value=mean(value), sd_value=sd(value)),by=c("gene_id", "cond", "pf")]
+	d6 <- d4[,list(mean_value=mean(value), sd_value=sd(value)),by=c("ensembl_gene_id", "gene_name", "cond", "pf")]
 	saveRDS(d6, "files/plot-table-norm.rds")
-
-	# prepare gene name annotation table
-	ann <- read.table("annotations/gene_names.txt", sep = ",", header = T)
-	colnames(ann) <- c("gene_id", "gene_name")
-	saveRDS(as.data.table(ann), "files/ann-table.rds")
 
 	# principal component analysis + correlations of polysome data
 	pca()
@@ -61,7 +68,7 @@ diff_expr <- function() {
 initialize_gene_sets <- function() {
 	# full data matrix
 	d <- readRDS("files/data-matrix.rds")
-	rownames(d) <- d$gene_id
+	rownames(d) <- d$ensembl_gene_id
 	d <- as.matrix(d[,2:dim(d)[2]])
 	# define gene sets
 	le <<- get_diff_expr("L-LE", 0.01)
@@ -106,24 +113,22 @@ initialize_gene_sets <- function() {
 	res.le.leku.deseq <- get_diff_expr("LE-LEKU-polysome-cond", 0.01)
 	# get_sig_genes_deseq()
 
-	all.genes <<- unique(c(res.l.le.deseq$gene_id,
-						  res.l.leku.deseq$gene_id,
-						  res.le.leku.deseq$gene_id,
+	all.genes <<- unique(c(res.l.le.deseq$ensembl_gene_id,
+						  res.l.leku.deseq$ensembl_gene_id,
+						  res.le.leku.deseq$ensembl_gene_id,
 						  rownames(le),
 						  rownames(leku)))
 
 	# file gene_lengths_GRCh37.p13.txt was downloaded from Ensembl Biomart on 06/07/14
-	gene.len <- read.csv("annotations/gene-lengths-GRCm38.p3.txt", sep = "\t")
-	colnames(gene.len) <- c("ensembl_gene_id", "gene_start", "gene_end")
-	gene.len$gene_length <- abs(gene.len$gene_end - gene.len$gene_start)
+	gene.len <- readRDS("files/ann-table.rds")
 
 	# add gene lengths
 	res.l.le.deseq$ensembl_gene_id <- rownames(res.l.le.deseq)
-	res.l.le.deseq <<- merge(as.data.frame(res.l.le.deseq), gene.len[,c(1,4)])
+	res.l.le.deseq <<- merge(as.data.frame(res.l.le.deseq), gene.len)
 	res.l.leku.deseq$ensembl_gene_id <- rownames(res.l.leku.deseq)
-	res.l.leku.deseq <<- merge(as.data.frame(res.l.leku.deseq), gene.len[,c(1,4)])
+	res.l.leku.deseq <<- merge(as.data.frame(res.l.leku.deseq), gene.len)
 	res.le.leku.deseq$ensembl_gene_id <- rownames(res.le.leku.deseq)
-	res.le.leku.deseq <<- merge(as.data.frame(res.le.leku.deseq), gene.len[,c(1,4)])
+	res.le.leku.deseq <<- merge(as.data.frame(res.le.leku.deseq), gene.len)
 }
 
 anova_analysis <- function() {
