@@ -10,6 +10,7 @@ output:
 
 ```{r, echo=FALSE, include=FALSE, cache=TRUE}
 source("functions.R")
+initialize_gene_sets()
 ```
 
 # Polysome data
@@ -231,7 +232,7 @@ LE vs LEKU: 4534
 A summarized Venn diagram showing an overlap of these three gene sets:
 
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, fig.width=9, fig.height=6, fig.align='center'}
+```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, fig.align='center'}
 library(Vennerable)
 venn <- function(list, is.weights) {
   v <- Venn(list)
@@ -240,3 +241,223 @@ venn <- function(list, is.weights) {
 venn(list("LE-vs-L" = rownames(le), "LEKU-vs-L" = rownames(leku),
         "LE-vs-LEKU" = rownames(le.leku)), T)
 ```
+
+# Dependencies between expression and translation activities
+
+## LE vs L comparison.
+
+Overlap of significant RNA-Seq genes and significan Polysome genes is shown in the following figure:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, fig.align='center'}
+venn(list("RNA-Seq" = rownames(le), "Polysome" = res.l.le.deseq$ensembl_gene_id),
+        T)
+```
+
+Let us consider separately these 2 gene sets (genes that change both expression level and polysome fraction; and genes that only change polysome fraction and do not change expression level at all).
+
+
+**Polysome changes, expression changes**
+
+
+```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+hist(log10(res.l.le.deseq[(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]$padj), xlab = "log10(padj)", main = "Distribution of p-values")
+```
+```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+hist(log10(res.l.le.deseq[(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]$gene_length), xlab = "log10(gene_length)", main = "Distributions of gene lengths")
+```
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+t <- res.l.le.deseq[(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
+t <- t[order(t$padj),]
+head(t[, c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(t$ensembl_gene_id, 25))
+```
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+t <- res.l.le.deseq[(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
+t <- t[order(t$gene_length),]
+head(t[, c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(t$ensembl_gene_id, 25))
+```
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+t <- res.l.le.deseq[(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
+t <- t[order(-t$gene_length),]
+head(t[, c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(t$ensembl_gene_id, 25))
+```
+
+
+
+**Polysome changes, expression does not change**
+
+
+```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+hist(log10(res.l.le.deseq[!(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]$padj), xlab = "log10(padj)", main = "Distribution of p-values")
+```
+```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+hist(log10(res.l.le.deseq[!(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]$gene_length), xlab = "log10(gene_length)", main = "Distributions of gene lengths")
+```
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+t <- res.l.le.deseq[!(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
+t <- t[order(t$padj),]
+head(t[, c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(t$ensembl_gene_id, 25))
+```
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+t <- res.l.le.deseq[!(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
+t <- t[order(t$gene_length),]
+head(t[, c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(t$ensembl_gene_id, 25))
+```
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+t <- res.l.le.deseq[!(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
+t <- t[order(-t$gene_length),]
+head(t[, c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(t$ensembl_gene_id, 25))
+```
+
+
+
+Genes in which both expression and polysome fraction change have more significant p-values for differences between LE and L conditions. However, the gene legnth distrubutions are approximately the same for both conditions.
+
+
+## LE vs LEKU comparison.
+
+Overlap of significant RNA-Seq genes and significan Polysome genes is shown in the following figure:
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, fig.align='center'}
+venn(list("RNA-Seq" = rownames(le.leku), "Polysome" = res.le.leku.deseq$ensembl_gene_id),
+        T)
+```
+
+Let us consider separately these 2 gene sets (genes that change both expression level and polysome fraction; and genes that only change polysome fraction and do not change expression level at all).
+
+
+**Polysome changes, expression changes**
+
+
+```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+hist(log10(res.le.leku.deseq[(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]$padj), xlab = "log10(padj)", main = "Distribution of p-values")
+```
+```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+hist(log10(res.le.leku.deseq[(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]$gene_length), xlab = "log10(gene_length)", main = "Distributions of gene lengths")
+```
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+t <- res.le.leku.deseq[(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
+t <- t[order(t$padj),]
+head(t[, c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(t$ensembl_gene_id, 25))
+```
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+t <- res.le.leku.deseq[(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
+t <- t[order(t$gene_length),]
+head(t[, c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(t$ensembl_gene_id, 25))
+```
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+t <- res.le.leku.deseq[(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
+t <- t[order(-t$gene_length),]
+head(t[, c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(t$ensembl_gene_id, 25))
+```
+
+
+
+**Polysome changes, expression does not change**
+
+
+```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+hist(log10(res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]$padj), xlab = "log10(padj)", main = "Distribution of p-values")
+```
+```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+hist(log10(res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]$gene_length), xlab = "log10(gene_length)", main = "Distributions of gene lengths")
+```
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+t <- res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
+t <- t[order(t$padj),]
+head(t[, c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(t$ensembl_gene_id, 25))
+```
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+t <- res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
+t <- t[order(t$gene_length),]
+head(t[, c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(t$ensembl_gene_id, 25))
+```
+
+
+
+```{r, echo=FALSE, cache=TRUE}
+t <- res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
+t <- t[order(-t$gene_length),]
+head(t[, c(1,7,8,9)], 25)
+```
+
+```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+plot_genes(head(t$ensembl_gene_id, 25))
+```
+
