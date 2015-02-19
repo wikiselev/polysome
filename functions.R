@@ -7,6 +7,7 @@ library(fpc)
 library(topGO)
 library(org.Mm.eg.db)
 library(GMD)
+library(gplots)
 
 source("preliminary.R")
 source("clustering.R")

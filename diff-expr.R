@@ -22,46 +22,56 @@ diff_expr_pairwise <- function(cond1, cond2) {
   saveRDS(results(cds), paste0("files/diff-expr-", cond1, "-", cond2, ".rds"))
 }
 
-diff_expr_two_time_courses_cond <- function(cond1, cond2) {
-  d <- readRDS("files/data-matrix.rds")
+diff_expr_two_time_courses_cond <- function(cond1, cond2, fraction) {
+        # cond1 and cond2 arguments are either "L", "LE", "LEKU"
+        # fraction argument is either "monosome", "light", "heavy" or "all"
+        d <- readRDS("files/data-matrix.rds")
+        # rename the columns
+        cols <- colnames(d[,2:157])
+        j <- 4
+        for(i in 1:13){
+        cols[grep(paste0("LUL1._e", i, "_"), cols)] <- paste0("L_", j)
+        j <- j + 1
+        }
+        j <- 4
+        for(i in 14:26){
+        cols[grep(paste0("LUL1._e", i, "_"), cols)] <- paste0("LE_", j)
+        j <- j + 1
+        }
+        j <- 4
+        for(i in 27:39){
+        cols[grep(paste0("LUL1._e", i, "_"), cols)] <- paste0("LEKU_", j)
+        j <- j + 1
+        }
+        colnames(d)[2:157] <- cols
 
-  cols <- colnames(d[,2:157])
-  j <- 4
-  for(i in 1:13){
-    cols[grep(paste0("LUL1._e", i, "_"), cols)] <- paste0("L_", j)
-    j <- j + 1
-  }
-  j <- 4
-  for(i in 14:26){
-    cols[grep(paste0("LUL1._e", i, "_"), cols)] <- paste0("LE_", j)
-    j <- j + 1
-  }
-  j <- 4
-  for(i in 27:39){
-    cols[grep(paste0("LUL1._e", i, "_"), cols)] <- paste0("LEKU_", j)
-    j <- j + 1
-  }
-
-  colnames(d)[2:157] <- cols
-
-  countData <- d[,grepl(paste0(cond1, "_"), colnames(d)) | grepl(paste0(cond2, "_"), colnames(d))]
-  rownames(countData) <- d$gene_id
-  ann <- colnames(countData)
-  ann <- sapply(strsplit(ann, "\\."), "[[", 1)
-  colnames(countData) <- ann
-  colData <- data.frame(condition = sapply(strsplit(ann, "\\_"), "[[", 1),
+        countData <- d[,grepl(paste0(cond1, "_"), colnames(d)) | grepl(paste0(cond2, "_"), colnames(d))]
+        if(fraction == "monosome") {
+                countData <- countData[,grepl("_[4-7]", colnames(countData), perl = TRUE)]
+        }
+        if(fraction == "light") {
+                countData <- countData[,grepl("_([8-9]|10)", colnames(countData), perl = TRUE)]
+        }
+        if(fraction == "heavy") {
+                countData <- countData[,grepl("_1[1-6]", colnames(countData), perl = TRUE)]
+        }
+        rownames(countData) <- d$gene_id
+        ann <- colnames(countData)
+        ann <- sapply(strsplit(ann, "\\."), "[[", 1)
+        colnames(countData) <- ann
+        colData <- data.frame(condition = sapply(strsplit(ann, "\\_"), "[[", 1),
                         pf = sapply(strsplit(ann, "\\_"), "[[", 2))
 
-  cds <- DESeqDataSetFromMatrix(countData = countData,
-    colData = colData, design = ~ condition + pf + condition:pf)
+        cds <- DESeqDataSetFromMatrix(countData = countData,
+        colData = colData, design = ~ condition + pf + condition:pf)
 
-  # perform the main computation
-  cds <- DESeq(cds)
-  resultsNames(cds)
+        # perform the main computation
+        cds <- DESeq(cds)
+        resultsNames(cds)
 
-  # likelihood ratio test
-  cdsLRT <- nbinomLRT(cds, reduced = ~ pf)
-  saveRDS(results(cdsLRT), paste0("files/diff-expr-", cond1, "-", cond2, "-polysome-cond.rds"))
+        # likelihood ratio test
+        cdsLRT <- nbinomLRT(cds, reduced = ~ pf)
+        saveRDS(results(cdsLRT), paste0("files/diff-expr-", cond1, "-", cond2, "-polysome-cond-", fraction, ".rds"))
 }
 
 get_diff_expr <- function(name, padj) {
