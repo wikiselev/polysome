@@ -6,8 +6,20 @@ process_data()
 ##### ANOVA analysis
 anova_analysis()
 # alternative way - using DESeq2
-diff_expr_two_time_courses_cond("L", "LE")
-diff_expr_two_time_courses_cond("LE", "LEKU")
+diff_expr_two_time_courses_cond("L", "LE", "all")
+diff_expr_two_time_courses_cond("LE", "LEKU", "all")
+
+diff_expr_two_time_courses_cond("L", "LE", "monosome")
+diff_expr_two_time_courses_cond("LE", "LEKU", "monosome")
+diff_expr_two_time_courses_cond("L", "LEKU", "monosome")
+
+diff_expr_two_time_courses_cond("L", "LE", "light")
+diff_expr_two_time_courses_cond("LE", "LEKU", "light")
+diff_expr_two_time_courses_cond("L", "LEKU", "light")
+
+diff_expr_two_time_courses_cond("L", "LE", "heavy")
+diff_expr_two_time_courses_cond("LE", "LEKU", "heavy")
+diff_expr_two_time_courses_cond("L", "LEKU", "heavy")
 
 ##### differential expression analysis of mRNAs
 diff_expr()
