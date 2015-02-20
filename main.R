@@ -18,10 +18,10 @@ initialize_gene_sets()
 venn(list("LE-vs-L" = rownames(le), "LEKU-vs-L" = rownames(leku),
 	"LE-vs-LEKU" = rownames(le.leku)), T, "rna-seq")
 
-t <- pol.all[!is.na(L.LE.monosome.padj) & L.LE.monosome.padj < 0.01 &
+t <- pol.all[!is.na(L.LE.monosome.padj) & L.LE.monosome.padj > 0.5 &
              ensembl_gene_id %in% rownames(le) & !is.na(L.LE.merge.padj) &
-             L.LE.merge.padj > 0.5]
-plot_genes(head(t[order(L.LE.monosome.padj), ensembl_gene_id], 10), "test")
+             L.LE.merge.padj < 0.01]
+plot_genes(head(t[order(L.LE.merge.padj), ensembl_gene_id], 10), "test")
 
 
 

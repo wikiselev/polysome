@@ -124,10 +124,13 @@ head(res.l.le.deseq[order(res.l.le.deseq$padj), c(1,7,8,9)], 25)
 ```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
 plot_genes <- function(gene.names){
         plot.data <- get_plot_data(gene.names)
+        plot.data$pf <- as.character(plot.data$pf)
+        plot.data$pf <- as.numeric(plot.data$pf)
         limits <- aes(ymax = mean_value + sd_value, ymin = mean_value - sd_value)
-        ggplot(plot.data, aes(as.numeric(pf), mean_value, group = cond, color = cond)) +
+        ggplot(plot.data, aes(pf, mean_value, group = cond, color = cond)) +
                 geom_line() + facet_wrap(~ gene_name, scale = "free_y") +
                 geom_errorbar(limits, width = 0.25) +
+                geom_vline(xintercept = c(7.5, 10.5)) +
                 labs(x = "Polysome fraction", y = "Read counts") +
                 theme_bw()
 }

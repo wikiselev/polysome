@@ -123,19 +123,19 @@ initialize_gene_sets <- function() {
         # note that 110 genes do not have gene names and are excluded from pol.all
         pol.all <<- as.data.table(pol.all)
 
-# 	# old polysome differential expression gene sets - now we first split
-# 	# polysome data by fraction and then do differential expression analysis
-# 	# in each fraction category separately - see above
-# 	res.l.le.deseq <- get_diff_expr("L-LE-polysome-cond-all", 0.01)
-# 	res.l.leku.deseq <- get_diff_expr("L-LEKU-polysome-cond-all", 0.01)
-# 	res.le.leku.deseq <- get_diff_expr("LE-LEKU-polysome-cond-all", 0.01)
-# 	# add gene lengths
-# 	res.l.le.deseq$ensembl_gene_id <- rownames(res.l.le.deseq)
-# 	res.l.le.deseq <<- merge(as.data.frame(res.l.le.deseq), gene.len)
-# 	res.l.leku.deseq$ensembl_gene_id <- rownames(res.l.leku.deseq)
-# 	res.l.leku.deseq <<- merge(as.data.frame(res.l.leku.deseq), gene.len)
-# 	res.le.leku.deseq$ensembl_gene_id <- rownames(res.le.leku.deseq)
-# 	res.le.leku.deseq <<- merge(as.data.frame(res.le.leku.deseq), gene.len)
+	# old polysome differential expression gene sets - now we first split
+	# polysome data by fraction and then do differential expression analysis
+	# in each fraction category separately - see above
+	res.l.le.deseq <- get_diff_expr("L.LE-polysome-cond-all", 0.01)
+	res.l.leku.deseq <- get_diff_expr("L.LEKU-polysome-cond-all", 0.01)
+	res.le.leku.deseq <- get_diff_expr("LE.LEKU-polysome-cond-all", 0.01)
+	# add gene lengths
+	res.l.le.deseq$ensembl_gene_id <- rownames(res.l.le.deseq)
+	res.l.le.deseq <<- merge(as.data.frame(res.l.le.deseq), gene.len)
+	res.l.leku.deseq$ensembl_gene_id <- rownames(res.l.leku.deseq)
+	res.l.leku.deseq <<- merge(as.data.frame(res.l.leku.deseq), gene.len)
+	res.le.leku.deseq$ensembl_gene_id <- rownames(res.le.leku.deseq)
+	res.le.leku.deseq <<- merge(as.data.frame(res.le.leku.deseq), gene.len)
 
 # 	# this gene set was required for GO analysis
 # 	all.genes <<- unique(c(res.l.le.deseq$ensembl_gene_id,
