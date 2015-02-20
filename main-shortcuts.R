@@ -108,9 +108,9 @@ initialize_gene_sets <- function() {
 	##### get significant genes from ANOVA analysis
 	# output: global variables res.l.le, res.le.leku, res.l.leku
 	get_sig_genes_anova()
-	res.l.le.deseq <- get_diff_expr("L-LE-polysome-cond", 0.01)
-	res.l.leku.deseq <- get_diff_expr("L-LEKU-polysome-cond", 0.01)
-	res.le.leku.deseq <- get_diff_expr("LE-LEKU-polysome-cond", 0.01)
+	res.l.le.deseq <- get_diff_expr("L-LE-polysome-cond-all", 0.01)
+	res.l.leku.deseq <- get_diff_expr("L-LEKU-polysome-cond-all", 0.01)
+	res.le.leku.deseq <- get_diff_expr("LE-LEKU-polysome-cond-all", 0.01)
 	# get_sig_genes_deseq()
 
 	all.genes <<- unique(c(res.l.le.deseq$ensembl_gene_id,
