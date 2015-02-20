@@ -55,6 +55,9 @@ diff_expr_two_time_courses_cond <- function(cond1, cond2, fraction) {
         if(fraction == "heavy") {
                 countData <- countData[,grepl("_1[1-6]", colnames(countData), perl = TRUE)]
         }
+        if(fraction == "merge") {
+                countData <- countData[,grepl("_([8-9]|1[0-6])", colnames(countData), perl = TRUE)]
+        }
         rownames(countData) <- d$ensembl_gene_id
         ann <- colnames(countData)
         ann <- sapply(strsplit(ann, "\\."), "[[", 1)
@@ -71,7 +74,7 @@ diff_expr_two_time_courses_cond <- function(cond1, cond2, fraction) {
 
         # likelihood ratio test
         cdsLRT <- nbinomLRT(cds, reduced = ~ pf)
-        saveRDS(results(cdsLRT), paste0("files/diff-expr-", cond1, "-", cond2, "-polysome-cond-", fraction, ".rds"))
+        saveRDS(results(cdsLRT), paste0("files/diff-expr-", cond1, ".", cond2, "-polysome-cond-", fraction, ".rds"))
 }
 
 get_diff_expr <- function(name, padj) {

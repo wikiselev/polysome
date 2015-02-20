@@ -58,77 +58,91 @@ process_data <- function() {
 	cor_heatmap(count.matrix, "rna-seq")
 }
 
-diff_expr <- function() {
-	# differential expression analysis
+diff_expr_polysome <- function() {
+        # taking into account all fractions
+        diff_expr_two_time_courses_cond("L", "LE", "all")
+        diff_expr_two_time_courses_cond("LE", "LEKU", "all")
+        diff_expr_two_time_courses_cond("L", "LEKU", "all")
+        # taking into account only monosome [4:7] fractions
+        diff_expr_two_time_courses_cond("L", "LE", "monosome")
+        diff_expr_two_time_courses_cond("LE", "LEKU", "monosome")
+        diff_expr_two_time_courses_cond("L", "LEKU", "monosome")
+        # taking into account only light [8:10] fractions
+        diff_expr_two_time_courses_cond("L", "LE", "light")
+        diff_expr_two_time_courses_cond("LE", "LEKU", "light")
+        diff_expr_two_time_courses_cond("L", "LEKU", "light")
+        # taking into account only heavy [11:16] fractions
+        diff_expr_two_time_courses_cond("L", "LE", "heavy")
+        diff_expr_two_time_courses_cond("LE", "LEKU", "heavy")
+        diff_expr_two_time_courses_cond("L", "LEKU", "heavy")
+        # taking into account only light and heavy [8:16] fractions
+        diff_expr_two_time_courses_cond("L", "LE", "merge")
+        diff_expr_two_time_courses_cond("LE", "LEKU", "merge")
+        diff_expr_two_time_courses_cond("L", "LEKU", "merge")
+}
+
+diff_expr_rna <- function() {
+	# differential expression analysis of RNA-seq data
 	diff_expr_pairwise("L", "LE")
 	diff_expr_pairwise("L", "LEKU")
 	diff_expr_pairwise("LE", "LEKU")
 }
 
 initialize_gene_sets <- function() {
-	# full data matrix
-	d <- readRDS("files/data-matrix.rds")
-	rownames(d) <- d$ensembl_gene_id
-	d <- as.matrix(d[,2:dim(d)[2]])
-	# define gene sets
-	le <<- get_diff_expr("L-LE", 0.01)
-	le.up <<- le[le[,2] > 0,]
-	le.down <<- le[le[,2] < 0,]
-	leku <<- get_diff_expr("L-LEKU", 0.01)
-	leku.up <<- leku[leku[,2] > 0,]
-	leku.down <<- leku[leku[,2] < 0,]
-	le.leku <<- get_diff_expr("LE-LEKU", 0.01)
-	# # define gene sets more finely
-	# setA <<- rownames(le.down[!(rownames(le.down) %in% rownames(leku.down)) & !(rownames(le.down) %in% rownames(leku.up)), ])
-	# setB <<- rownames(le.up[!(rownames(le.up) %in% rownames(leku.up)) & !(rownames(le.up) %in% rownames(leku.down)), ])
-	# setC <<- rownames(leku.down[!(rownames(leku.down) %in% rownames(le.down)) & !(rownames(leku.down) %in% rownames(le.up)), ])
-	# setD <<- rownames(leku.up[!(rownames(leku.up) %in% rownames(le.up)) & !(rownames(leku.up) %in% rownames(le.down)), ])
-	# setE <<- rownames(le.down[rownames(le.down) %in% rownames(leku.down), ])
-	# setF <<- rownames(le.up[rownames(le.up) %in% rownames(leku.up), ])
-	# setG <<- rownames(le.down[rownames(le.down) %in% rownames(leku.up), ])
-	# setH <<- rownames(le.up[rownames(le.up) %in% rownames(leku.down), ])
-	# # filter out genes that are present in polysome experiment
-	# setA.filt <<- setA[setA %in% rownames(d)]
-	# # 1039
-	# setB.filt <<- setB[setB %in% rownames(d)]
-	# # 1346
-	# setC.filt <<- setC[setC %in% rownames(d)]
-	# # 901
-	# setD.filt <<- setD[setD %in% rownames(d)]
-	# # 870
-	# setE.filt <<- setE[setE %in% rownames(d)]
-	# # 2372
-	# setF.filt <<- setF[setF %in% rownames(d)]
-	# # 2403
-	# setG.filt <<- setG[setG %in% rownames(d)]
-	# # 54
-	# setH.filt <<- setH[setH %in% rownames(d)]
-	# # 23
+	# define rna-seq gene sets
+	le <<- get_diff_expr("L.LE", 0.01)
+	leku <<- get_diff_expr("L.LEKU", 0.01)
+	le.leku <<- get_diff_expr("LE.LEKU", 0.01)
 
-	##### get significant genes from ANOVA analysis
-	# output: global variables res.l.le, res.le.leku, res.l.leku
-	get_sig_genes_anova()
-	res.l.le.deseq <- get_diff_expr("L-LE-polysome-cond-all", 0.01)
-	res.l.leku.deseq <- get_diff_expr("L-LEKU-polysome-cond-all", 0.01)
-	res.le.leku.deseq <- get_diff_expr("LE-LEKU-polysome-cond-all", 0.01)
-	# get_sig_genes_deseq()
+# 	# get significant genes from ANOVA analysis of polysome fractions
+# 	# output: global variables res.l.le, res.le.leku, res.l.leku
+# 	# switched to DESeq2 package and don't use ANOVA analysis anymore
+# 	# now this function is commented:
+# 	get_sig_genes_anova()
 
-	all.genes <<- unique(c(res.l.le.deseq$ensembl_gene_id,
-						  res.l.leku.deseq$ensembl_gene_id,
-						  res.le.leku.deseq$ensembl_gene_id,
-						  rownames(le),
-						  rownames(leku)))
+	# initialize polysome gene sets
+	pol.all <- data.frame(ind = c(1:19600))
+        coln <- c()
+	for(cond in c("L.LE", "LE.LEKU", "L.LEKU")) {
+	        for(frac in c("monosome", "light", "heavy", "merge", "all")) {
+	                d <- readRDS(paste0("files/diff-expr-", cond, "-polysome-cond-", frac, ".rds"))
+	                pol.all <- cbind(pol.all, d$padj)
+	                coln <- c(coln, paste0(cond, ".", frac, ".padj"))
+	        }
+	}
+        pol.all <- pol.all[,2:dim(pol.all)[2]]
+        colnames(pol.all) <- coln
+        pol.all$ensembl_gene_id <- rownames(d)
+        # remove genes where padj is NA in all conditions and fractions
+        pol.all <- pol.all[apply(pol.all[,1:15], 1, function(x) !all(is.na(x))),]
 
-	# file gene_lengths_GRCh37.p13.txt was downloaded from Ensembl Biomart on 06/07/14
-	gene.len <- readRDS("files/ann-table.rds")
+        # file gene_lengths_GRCh37.p13.txt was downloaded from Ensembl Biomart on 06/07/14
+        gene.len <- readRDS("files/ann-table.rds")
+        # add gene lengths
+        pol.all <- merge(pol.all, gene.len)
+        # note that 110 genes do not have gene names and are excluded from pol.all
+        pol.all <<- as.data.table(pol.all)
 
-	# add gene lengths
-	res.l.le.deseq$ensembl_gene_id <- rownames(res.l.le.deseq)
-	res.l.le.deseq <<- merge(as.data.frame(res.l.le.deseq), gene.len)
-	res.l.leku.deseq$ensembl_gene_id <- rownames(res.l.leku.deseq)
-	res.l.leku.deseq <<- merge(as.data.frame(res.l.leku.deseq), gene.len)
-	res.le.leku.deseq$ensembl_gene_id <- rownames(res.le.leku.deseq)
-	res.le.leku.deseq <<- merge(as.data.frame(res.le.leku.deseq), gene.len)
+# 	# old polysome differential expression gene sets - now we first split
+# 	# polysome data by fraction and then do differential expression analysis
+# 	# in each fraction category separately - see above
+# 	res.l.le.deseq <- get_diff_expr("L-LE-polysome-cond-all", 0.01)
+# 	res.l.leku.deseq <- get_diff_expr("L-LEKU-polysome-cond-all", 0.01)
+# 	res.le.leku.deseq <- get_diff_expr("LE-LEKU-polysome-cond-all", 0.01)
+# 	# add gene lengths
+# 	res.l.le.deseq$ensembl_gene_id <- rownames(res.l.le.deseq)
+# 	res.l.le.deseq <<- merge(as.data.frame(res.l.le.deseq), gene.len)
+# 	res.l.leku.deseq$ensembl_gene_id <- rownames(res.l.leku.deseq)
+# 	res.l.leku.deseq <<- merge(as.data.frame(res.l.leku.deseq), gene.len)
+# 	res.le.leku.deseq$ensembl_gene_id <- rownames(res.le.leku.deseq)
+# 	res.le.leku.deseq <<- merge(as.data.frame(res.le.leku.deseq), gene.len)
+
+# 	# this gene set was required for GO analysis
+# 	all.genes <<- unique(c(res.l.le.deseq$ensembl_gene_id,
+# 	                       res.l.leku.deseq$ensembl_gene_id,
+# 	                       res.le.leku.deseq$ensembl_gene_id,
+# 	                       rownames(le),
+# 	                       rownames(leku)))
 }
 
 anova_analysis <- function() {
@@ -146,7 +160,8 @@ anova_analysis <- function() {
 }
 
 merge_anova_cond_int <- function(res) {
-	# merge anova results
+	# merge anova results - see description in the old report.pdf file in
+	# report folder
 	res.merged <- res$int
 	res.merged$padj.cond <- res$cond$padj
 	res.merged.sig <- res.merged[(padj < 0.01 & padj.cond < 0.05) | padj.cond < 0.01]
@@ -154,23 +169,9 @@ merge_anova_cond_int <- function(res) {
 }
 
 get_sig_genes_anova <- function() {
-	res <- readRDS("files/anova-result-L-LE.rds")
-	# plot_genes(head(res$cond[order(padj), gene_id], 10), "L-LE-condition-pf")
-	# plot_genes(head(res$pf[order(padj), gene_id], 10), "L-LE-pf")
-	# plot_genes(head(res$int[order(padj), gene_id], 10), "L-LE-condition-pf")
-	res.l.le <<- merge_anova_cond_int(res)
-
-	res <- readRDS("files/anova-result-LE-LEKU.rds")
-	# plot_genes(head(res$cond[order(padj), gene_id], 10), "LE-LEKU-condition")
-	# plot_genes(head(res$pf[order(padj), gene_id], 10), "LE-LEKU-pf")
-	# plot_genes(head(res$int[order(padj), gene_id], 10), "LE-LEKU-condition-pf")
-	res.le.leku <<- merge_anova_cond_int(res)
-
-	res <- readRDS("files/anova-result-L-LEKU.rds")
-	# plot_genes(head(res$cond[order(padj), gene_id], 10), "L-LEKU-condition")
-	# plot_genes(head(res$pf[order(padj), gene_id], 10), "L-LEKU-pf")
-	# plot_genes(head(res$int[order(padj), gene_id], 10), "L-LEKU-condition-pf")
-	res.l.leku <<- merge_anova_cond_int(res)
+	res.l.le <<- merge_anova_cond_int(readRDS("files/anova-result-L-LE.rds"))
+	res.le.leku <<- merge_anova_cond_int(readRDS("files/anova-result-LE-LEKU.rds"))
+	res.l.leku <<- merge_anova_cond_int(res <- readRDS("files/anova-result-L-LEKU.rds"))
 }
 
 get_sig_genes_deseq <- function() {
@@ -224,119 +225,6 @@ go_clust <- function(clusts) {
 		ind <- ind + 1
 	}
 }
-
-plot_go_clust <- function() {
-	a66_1 <<- annotate_go_terms("a66-1")
-	a66_2 <<- annotate_go_terms("a66-2")
-	a66_3 <<- annotate_go_terms("a66-3")
-	a66_4 <<- annotate_go_terms("a66-4")
-	a66_5 <<- annotate_go_terms("a66-5")
-	a66_6 <<- annotate_go_terms("a66-6")
-
-	a66_1_1 <<- annotate_go_terms("a66-1-1")
-	a66_1_2 <<- annotate_go_terms("a66-1-2")
-
-	a66_2_1 <<- annotate_go_terms("a66-2-1")
-	a66_2_2 <<- annotate_go_terms("a66-2-2")
-	a66_2_3 <<- annotate_go_terms("a66-2-3")
-	a66_2_4 <<- annotate_go_terms("a66-2-4")
-
-	a66_3_1 <<- annotate_go_terms("a66-3-1")
-	a66_3_2 <<- annotate_go_terms("a66-3-2")
-	a66_3_3 <<- annotate_go_terms("a66-3-3")
-	a66_3_4 <<- annotate_go_terms("a66-3-4")
-
-	a66_4_1 <<- annotate_go_terms("a66-4-1")
-	a66_4_2 <<- annotate_go_terms("a66-4-2")
-
-	a66_5_1 <<- annotate_go_terms("a66-5-1")
-	a66_5_2 <<- annotate_go_terms("a66-5-2")
-	# a66_5_3 <<- annotate_go_terms("a66-5-3")
-	# a66_5_4 <<- annotate_go_terms("a66-5-4")
-	# a66_5_5 <<- annotate_go_terms("a66-5-5")
-
-	a66_6_1 <<- annotate_go_terms("a66-6-1")
-	a66_6_2 <<- annotate_go_terms("a66-6-2")
-
-	plot_go_terms(a66_1, "a66-1", 10)
-	plot_go_terms(a66_2, "a66-2", 10)
-	plot_go_terms(a66_3, "a66-3", 10)
-	plot_go_terms(a66_4, "a66-4", 10)
-	plot_go_terms(a66_5, "a66-5", 10)
-	plot_go_terms(a66_6, "a66-6", 10)
-
-	plot_go_terms(a66_1_1, "a66-1-1", 10)
-	plot_go_terms(a66_1_2, "a66-1-2", 10)
-	plot_go_terms(a66_2_1, "a66-2-1", 10)
-	plot_go_terms(a66_2_2, "a66-2-2", 10)
-	plot_go_terms(a66_2_3, "a66-2-3", 10)
-	plot_go_terms(a66_2_4, "a66-2-4", 10)
-	plot_go_terms(a66_3_1, "a66-3-1", 10)
-	plot_go_terms(a66_3_2, "a66-3-2", 10)
-	plot_go_terms(a66_3_3, "a66-3-3", 10)
-	plot_go_terms(a66_3_4, "a66-3-4", 10)
-	plot_go_terms(a66_4_1, "a66-4-1", 10)
-	plot_go_terms(a66_4_2, "a66-4-2", 10)
-	plot_go_terms(a66_5_1, "a66-5-1", 10)
-	plot_go_terms(a66_5_2, "a66-5-2", 10)
-	# plot_go_terms(a66_5_3, "a66-5-3", 10)
-	# plot_go_terms(a66_5_4, "a66-5-4", 10)
-	# plot_go_terms(a66_5_5, "a66-5-5", 10)
-	plot_go_terms(a66_6_1, "a66-6-1", 10)
-	plot_go_terms(a66_6_2, "a66-6-2", 10)
-}
-
-quickgo_clust_wt <- function() {
-	quickgo1(a66_1, "a66-1", 20)
-	quickgo1(a66_2, "a66-2", 20)
-	quickgo1(a66_3, "a66-3", 20)
-	quickgo1(a66_4, "a66-4", 20)
-	quickgo1(a66_5, "a66-5", 20)
-	quickgo1(a66_6, "a66-6", 20)
-
-	quickgo1(a66_1_1, "a66-1-1", 20)
-	quickgo1(a66_1_2, "a66-1-2", 20)
-	quickgo1(a66_2_1, "a66-2-1", 20)
-	quickgo1(a66_2_2, "a66-2-2", 20)
-	quickgo1(a66_2_3, "a66-2-3", 20)
-	quickgo1(a66_2_4, "a66-2-4", 20)
-	quickgo1(a66_3_1, "a66-3-1", 20)
-	quickgo1(a66_3_2, "a66-3-2", 20)
-	quickgo1(a66_3_3, "a66-3-3", 20)
-	quickgo1(a66_3_4, "a66-3-4", 20)
-	quickgo1(a66_4_1, "a66-4-1", 20)
-	quickgo1(a66_4_2, "a66-4-2", 20)
-	quickgo1(a66_5_1, "a66-5-1", 20)
-	quickgo1(a66_5_2, "a66-5-2", 20)
-	quickgo1(a66_6_1, "a66-6-1", 20)
-	quickgo1(a66_6_2, "a66-6-2", 20)
-
-	quickgo2(a66_1, a66_2, "a66-1-2", 20)
-
-	quickgo2(a66_1_1, a66_1_2, "a66-1-1-1-2", 20)
-	quickgo2(a66_2_1, a66_2_2, "a66-2-1-2-2", 10)
-
-	quickgo2(a66_3_1, a66_3_2, "a66-3-1-3-2", 10)
-
-	quickgo2(a66_5_1, a66_5_2, "a66-5-1-5-2", 10)
-
-
-	quickgo2(a66_1_1, a66_1_2, "a66-1-1-1-2", 10)
-	quickgo2(a66_1_3, a66_1_2, "a66-1-3-1-2", 8)
-	quickgo2(a66_1_4, a66_1_2, "a66-1-4-1-2", 10)
-	quickgo2(a66_1_5, a66_1_2, "a66-1-5-1-2", 10)
-
-	quickgo2(a66_1_2, a66_2_2, "a66-1-2-2-2", 10)
-	quickgo2(a66_2_1, a66_2_2, "a66-2-1-2-2", 8)
-	quickgo2(a66_2_3, a66_2_2, "a66-2-3-2-2", 10)
-	quickgo2(a66_2_4, a66_2_2, "a66-2-4-2-2", 10)
-}
-
-
-
-
-
-
 
 plot_groups <- function() {
 	# plot polysome data for the smallest gene sets
