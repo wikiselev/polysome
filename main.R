@@ -39,6 +39,9 @@ cond2 <- "LE"
 # fraction argument is either "monosome", "light", "heavy" or "all"
 d <- readRDS("files/data-table.rds")
 d <- d[order(cond, pf)]
+
+# TODO - can't return a data frame back to data.table - need to figure out how to do it differently
+# also need to reduce a number of genes - the whole data set is too large
 d[,list(sig.pf = posthoc_test_pf(data.frame(value = value, cond = cond, pf = pf), "L", "LE")), by = "ensembl_gene_id"]
 
 posthoc_test_pf <- function(d, cond1, cond2) {
@@ -60,8 +63,8 @@ posthoc_test_pf <- function(d, cond1, cond2) {
                 i <- i + 1
                 j <- j + 1
         }
-        # return(data.frame(pf = 4:16, p.adj = p.vals))
-        return(1)
+        return(data.frame(pf = 4:16, p.adj = p.vals))
+        # return(1)
 }
 
 plot_genes("ENSMUSG00000098243", "test")
