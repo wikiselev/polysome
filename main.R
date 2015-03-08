@@ -26,9 +26,12 @@ t <- pol.all[!is.na(L.LE.all.padj) & L.LE.all.padj < 0.01 & !ensembl_gene_id %in
 genes <- t[, ensembl_gene_id]
 t1 <- posthoc.l.le[ensembl_gene_id %in% genes]
 t2 <- t1[sig.pf < 0.01]
-plot_genes(unique(t2[pf < 8, ensembl_gene_id]), "test1")
-plot_genes(unique(t2[pf >= 8 & pf <= 10, ensembl_gene_id]), "test2")
-plot_genes(unique(t2[pf > 10, ensembl_gene_id]), "test3")
+t2 <- t2[order(sig.pf)]
+plot_genes(head(unique(t2[pf < 8, ensembl_gene_id]), 10), "test1")
+plot_genes(head(unique(t2[pf >= 8 & pf <= 10, ensembl_gene_id]), 10), "test2")
+plot_genes(head(unique(t2[pf > 10, ensembl_gene_id]), 10), "test3")
+plot_genes(head(unique(t2[pf > 10 & pf != 16, ensembl_gene_id]), 10), "test3-1")
+plot_genes(head(unique(t2[pf == 16, ensembl_gene_id]), 10), "test3-2")
 
 
 # ##### VENN diagrams of gene sets based ANOVA analysis
