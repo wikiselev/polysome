@@ -137,9 +137,9 @@ initialize_gene_sets <- function() {
 	res.le.leku.deseq$ensembl_gene_id <- rownames(res.le.leku.deseq)
 	res.le.leku.deseq <<- merge(as.data.frame(res.le.leku.deseq), gene.len)
 
-	posthot.l.le <<- readRDS("files/posthoc-pf-sig-L-LE.rds")
-	posthot.l.leku <<- readRDS("files/posthoc-pf-sig-L-LEKU.rds")
-	posthot.le.leku <<- readRDS("files/posthoc-pf-sig-LE-LEKU.rds")
+	posthoc.l.le <<- readRDS("files/posthoc-pf-sig-L-LE.rds")
+	posthoc.l.leku <<- readRDS("files/posthoc-pf-sig-L-LEKU.rds")
+	posthoc.le.leku <<- readRDS("files/posthoc-pf-sig-LE-LEKU.rds")
 
 # 	# this gene set was required for GO analysis
 # 	all.genes <<- unique(c(res.l.le.deseq$ensembl_gene_id,
