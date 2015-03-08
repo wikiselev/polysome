@@ -183,6 +183,24 @@ get_sig_genes_deseq <- function() {
 		"LE-LEKU-condition-pf-deseq")
 }
 
+posthoc_analysis <- function() {
+        d <- readRDS("files/data-table.rds")
+        d <- d[order(cond, pf)]
+
+        # also need to reduce a number of genes - the whole data set is too large
+        res <- d[,list(sig.pf = posthoc_test_pf(data.frame(value = value, cond = cond, pf = pf), "L", "LE")), by = "ensembl_gene_id"]
+        res$pf <- rep(4:16, length(unique(d[,ensembl_gene_id])))
+        saveRDS(res, "files/posthoc-pf-sig-L-LE.rds")
+
+        res <- d[,list(sig.pf = posthoc_test_pf(data.frame(value = value, cond = cond, pf = pf), "L", "LEKU")), by = "ensembl_gene_id"]
+        res$pf <- rep(4:16, length(unique(d[,ensembl_gene_id])))
+        saveRDS(res, "files/posthoc-pf-sig-L-LEKU.rds")
+
+        res <- d[,list(sig.pf = posthoc_test_pf(data.frame(value = value, cond = cond, pf = pf), "LE", "LEKU")), by = "ensembl_gene_id"]
+        res$pf <- rep(4:16, length(unique(d[,ensembl_gene_id])))
+        saveRDS(res, "files/posthoc-pf-sig-LE-LEKU.rds")
+}
+
 go_correlations <- function() {
 	GO(rownames(le)[rownames(le) %in% res.l.le$gene_id], all.genes, "corr-L-LE", 0.05)
 	GO(rownames(leku)[rownames(leku) %in% res.l.leku$gene_id], all.genes, "corr-L-LEKU", 0.05)
