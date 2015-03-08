@@ -22,15 +22,13 @@ venn(list("LE-vs-L" = rownames(le), "LEKU-vs-L" = rownames(leku),
 	"LE-vs-LEKU" = rownames(le.leku)), T, "rna-seq")
 
 
-
-
 t <- pol.all[!is.na(L.LE.all.padj) & L.LE.all.padj < 0.01 & !ensembl_gene_id %in% rownames(le)]
-genes <- t[order(L.LE.all.padj), ensembl_gene_id]
-
-plot.data <- readRDS("files/plot-table.rds")
-plot_genes(genes, "test")
-
-
+genes <- t[, ensembl_gene_id]
+t1 <- posthoc.l.le[ensembl_gene_id %in% genes]
+t2 <- t1[sig.pf < 0.01]
+plot_genes(unique(t2[pf < 8, ensembl_gene_id]), "test1")
+plot_genes(unique(t2[pf >= 8 & pf <= 10, ensembl_gene_id]), "test2")
+plot_genes(unique(t2[pf > 10, ensembl_gene_id]), "test3")
 
 
 # ##### VENN diagrams of gene sets based ANOVA analysis
