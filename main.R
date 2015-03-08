@@ -29,18 +29,15 @@ t <- pol.all[!is.na(L.LE.light.padj) & L.LE.light.padj > 0.5 &
 
 
 t <- pol.all[!is.na(L.LE.all.padj) & L.LE.all.padj < 0.01 & !ensembl_gene_id %in% rownames(le)]
-
-gene <- t$ensembl_gene_id[1]
-cond1 <- "L"
-cond2 <- "LE"
-
+genes <- head(t[order(L.LE.all.padj), ensembl_gene_id], 10)
 
 # cond1 and cond2 arguments are either "L", "LE", "LEKU"
 # fraction argument is either "monosome", "light", "heavy" or "all"
 d <- readRDS("files/data-table.rds")
 d <- d[order(cond, pf)]
 
-# TODO - can't return a data frame back to data.table - need to figure out how to do it differently
+d <- d[ensembl_gene_id %in% genes]
+
 # also need to reduce a number of genes - the whole data set is too large
 d[,list(sig.pf = posthoc_test_pf(data.frame(value = value, cond = cond, pf = pf), "L", "LE")), by = "ensembl_gene_id"]
 
@@ -63,11 +60,10 @@ posthoc_test_pf <- function(d, cond1, cond2) {
                 i <- i + 1
                 j <- j + 1
         }
-        return(data.frame(pf = 4:16, p.adj = p.vals))
-        # return(1)
+        return(which(p.vals %in% sort(p.vals)[1]) + 3)
 }
 
-plot_genes("ENSMUSG00000098243", "test")
+plot_genes(genes, "test")
 
 
 # > dim(t)
