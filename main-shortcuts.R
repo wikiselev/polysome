@@ -104,17 +104,15 @@ initialize_gene_sets <- function() {
 	pol.all <- data.frame(ind = c(1:19600))
         coln <- c()
 	for(cond in c("L.LE", "LE.LEKU", "L.LEKU")) {
-	        for(frac in c("monosome", "light", "heavy", "merge", "all")) {
-	                d <- readRDS(paste0("files/diff-expr-", cond, "-polysome-cond-", frac, ".rds"))
-	                pol.all <- cbind(pol.all, d$padj)
-	                coln <- c(coln, paste0(cond, ".", frac, ".padj"))
-	        }
+                d <- readRDS(paste0("files/diff-expr-", cond, "-polysome-cond-all.rds"))
+                pol.all <- cbind(pol.all, d$padj)
+                coln <- c(coln, paste0(cond, ".all.padj"))
 	}
         pol.all <- pol.all[,2:dim(pol.all)[2]]
         colnames(pol.all) <- coln
         pol.all$ensembl_gene_id <- rownames(d)
         # remove genes where padj is NA in all conditions and fractions
-        pol.all <- pol.all[apply(pol.all[,1:15], 1, function(x) !all(is.na(x))),]
+        pol.all <- pol.all[apply(pol.all[,1:3], 1, function(x) !all(is.na(x))),]
 
         # file gene_lengths_GRCh37.p13.txt was downloaded from Ensembl Biomart on 06/07/14
         gene.len <- readRDS("files/ann-table.rds")
