@@ -24,6 +24,49 @@ t <- pol.all[!is.na(L.LE.light.padj) & L.LE.light.padj > 0.5 &
                      !is.na(L.LE.heavy.padj) & L.LE.heavy.padj > 0.5 &
                      !is.na(L.LE.monosome.padj) & L.LE.monosome.padj < 0.01 &
                      ensembl_gene_id %in% rownames(le)]
+
+
+
+
+t <- pol.all[!is.na(L.LE.all.padj) & L.LE.all.padj < 0.01 & !ensembl_gene_id %in% rownames(le)]
+
+gene <- t$ensembl_gene_id[1]
+cond1 <- "L"
+cond2 <- "LE"
+
+
+# cond1 and cond2 arguments are either "L", "LE", "LEKU"
+# fraction argument is either "monosome", "light", "heavy" or "all"
+d <- readRDS("files/data-table.rds")
+d <- d[order(cond, pf)]
+d[,list(sig.pf = posthoc_test_pf(data.frame(value = value, cond = cond, pf = pf), "L", "LE")), by = "ensembl_gene_id"]
+
+posthoc_test_pf <- function(d, cond1, cond2) {
+        d <- d[d$cond == cond1 | d$cond == cond2,]
+        res <- pairwise.t.test(d$value, paste(d$cond, d$pf, sep = "_"), p.adjust.method="BH")
+        res <- res$p.value
+        p.vals <- NULL
+        i <- 20
+        j <- 8
+        for(z in 1:6){
+                p.vals[z] <- res[i, j]
+                i <- i + 1
+                j <- j + 1
+        }
+        i <- 13
+        j <- 1
+        for(z in 7:13){
+                p.vals[z] <- res[i, j]
+                i <- i + 1
+                j <- j + 1
+        }
+        # return(data.frame(pf = 4:16, p.adj = p.vals))
+        return(1)
+}
+
+plot_genes("ENSMUSG00000098243", "test")
+
+
 # > dim(t)
 # [1] 25 18
 plot_genes(t[,ensembl_gene_id], "L-LE-monosome-with-de")
