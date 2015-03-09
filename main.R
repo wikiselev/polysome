@@ -25,14 +25,53 @@ venn(list("LE-vs-L" = rownames(le), "LEKU-vs-L" = rownames(leku),
 t <- pol.all[!is.na(L.LE.all.padj) & L.LE.all.padj < 0.01 & !ensembl_gene_id %in% rownames(le)]
 genes <- t[, ensembl_gene_id]
 t1 <- posthoc.l.le[ensembl_gene_id %in% genes]
-t2 <- t1[sig.pf < 0.01]
-t2 <- t2[order(sig.pf)]
-plot_genes(head(unique(t2[pf < 8, ensembl_gene_id]), 10), "test1")
-plot_genes(head(unique(t2[pf >= 8 & pf <= 10, ensembl_gene_id]), 10), "test2")
-plot_genes(head(unique(t2[pf > 10, ensembl_gene_id]), 10), "test3")
-plot_genes(head(unique(t2[pf > 10 & pf != 16, ensembl_gene_id]), 10), "test3-1")
-plot_genes(head(unique(t2[pf == 16, ensembl_gene_id]), 10), "test3-2")
+setkey(t1, "ensembl_gene_id")
+min.pvals <- t1[,list(min.pval = min(sig.pf)),by = "ensembl_gene_id"]
+setkey(min.pvals, "ensembl_gene_id")
+t1 <- t1[min.pvals]
+t1 <- t1[sig.pf == min.pval]
+GO(unique(t1[pf < 8 & min.pval < 0.01, ensembl_gene_id]), all.genes, "L-LE-monosome-change", 0.05)
+GO(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), all.genes, "L-LE-light-change", 0.05)
+GO(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), all.genes, "L-LE-heavy-change", 0.05)
+t1 <- t1[order(min.pval)]
+plot_genes(head(unique(t1[pf < 8 & min.pval < 0.01, ensembl_gene_id]), 20), "L-LE-monosome-change")
+plot_genes(head(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), 20), "L-LE-light-change")
+plot_genes(head(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), 20), "L-LE-heavy-change")
+plot_genes(head(unique(t1[pf == 16, ensembl_gene_id]), 20), "L-LE-heavy16-change")
 
+t <- pol.all[!is.na(L.LEKU.all.padj) & L.LEKU.all.padj < 0.01 & !ensembl_gene_id %in% rownames(leku)]
+genes <- t[, ensembl_gene_id]
+t1 <- posthoc.l.leku[ensembl_gene_id %in% genes]
+setkey(t1, "ensembl_gene_id")
+min.pvals <- t1[,list(min.pval = min(sig.pf)),by = "ensembl_gene_id"]
+setkey(min.pvals, "ensembl_gene_id")
+t1 <- t1[min.pvals]
+t1 <- t1[sig.pf == min.pval]
+GO(unique(t1[pf < 8 & min.pval < 0.01, ensembl_gene_id]), all.genes, "L-LEKU-monosome-change", 0.05)
+GO(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), all.genes, "L-LEKU-light-change", 0.05)
+GO(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), all.genes, "L-LEKU-heavy-change", 0.05)
+t1 <- t1[order(min.pval)]
+plot_genes(head(unique(t1[pf < 8 & min.pval < 0.01, ensembl_gene_id]), 20), "L-LEKU-monosome-change")
+plot_genes(head(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), 20), "L-LEKU-light-change")
+plot_genes(head(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), 20), "L-LEKU-heavy-change")
+plot_genes(head(unique(t1[pf == 16, ensembl_gene_id]), 20), "L-LEKU-heavy16-change")
+
+t <- pol.all[!is.na(LE.LEKU.all.padj) & LE.LEKU.all.padj < 0.01 & !ensembl_gene_id %in% rownames(le.leku)]
+genes <- t[, ensembl_gene_id]
+t1 <- posthoc.le.leku[ensembl_gene_id %in% genes]
+setkey(t1, "ensembl_gene_id")
+min.pvals <- t1[,list(min.pval = min(sig.pf)),by = "ensembl_gene_id"]
+setkey(min.pvals, "ensembl_gene_id")
+t1 <- t1[min.pvals]
+t1 <- t1[sig.pf == min.pval]
+GO(unique(t1[pf < 8 & min.pval < 0.01, ensembl_gene_id]), all.genes, "LE-LEKU-monosome-change", 0.05)
+GO(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), all.genes, "LE-LEKU-light-change", 0.05)
+GO(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), all.genes, "LE-LEKU-heavy-change", 0.05)
+t1 <- t1[order(min.pval)]
+plot_genes(head(unique(t1[pf < 8 & min.pval < 0.01, ensembl_gene_id]), 20), "LE-LEKU-monosome-change")
+plot_genes(head(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), 20), "LE-LEKU-light-change")
+plot_genes(head(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), 20), "LE-LEKU-heavy-change")
+plot_genes(head(unique(t1[pf == 16, ensembl_gene_id]), 20), "LE-LEKU-heavy16-change")
 
 # ##### VENN diagrams of gene sets based ANOVA analysis
 # venn(list("LE-vs-L" = res.l.le$gene_id,

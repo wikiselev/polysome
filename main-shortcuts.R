@@ -140,11 +140,12 @@ initialize_gene_sets <- function() {
 	posthoc.le.leku <<- readRDS("files/posthoc-pf-sig-LE-LEKU.rds")
 
 # 	# this gene set was required for GO analysis
-# 	all.genes <<- unique(c(res.l.le.deseq$ensembl_gene_id,
-# 	                       res.l.leku.deseq$ensembl_gene_id,
-# 	                       res.le.leku.deseq$ensembl_gene_id,
-# 	                       rownames(le),
-# 	                       rownames(leku)))
+	all.genes <<- unique(c(res.l.le.deseq$ensembl_gene_id,
+	                       res.l.leku.deseq$ensembl_gene_id,
+	                       res.le.leku.deseq$ensembl_gene_id,
+	                       rownames(le),
+	                       rownames(leku),
+	                       rownames(le.leku)))
 }
 
 anova_analysis <- function() {
