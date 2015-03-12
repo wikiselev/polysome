@@ -30,11 +30,13 @@ min.pvals <- t1[,list(min.pval = min(sig.pf)),by = "ensembl_gene_id"]
 setkey(min.pvals, "ensembl_gene_id")
 t1 <- t1[min.pvals]
 t1 <- t1[sig.pf == min.pval]
-GO(unique(t1[pf < 8 & min.pval < 0.01, ensembl_gene_id]), all.genes, "L-LE-monosome-change", 0.05)
+t1 <- t1[min.pval < 0.01]
+GO(unique(t1[pf < 8, ensembl_gene_id]), all.genes, "L-LE-monosome-change", 0.05)
 GO(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), all.genes, "L-LE-light-change", 0.05)
 GO(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), all.genes, "L-LE-heavy-change", 0.05)
+GO(unique(t1[pf == 16, ensembl_gene_id]), all.genes, "L-LE-heavy16-change", 0.05)
 t1 <- t1[order(min.pval)]
-plot_genes(head(unique(t1[pf < 8 & min.pval < 0.01, ensembl_gene_id]), 20), "L-LE-monosome-change")
+plot_genes(head(unique(t1[pf < 8, ensembl_gene_id]), 20), "L-LE-monosome-change")
 plot_genes(head(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), 20), "L-LE-light-change")
 plot_genes(head(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), 20), "L-LE-heavy-change")
 plot_genes(head(unique(t1[pf == 16, ensembl_gene_id]), 20), "L-LE-heavy16-change")
@@ -47,11 +49,13 @@ min.pvals <- t1[,list(min.pval = min(sig.pf)),by = "ensembl_gene_id"]
 setkey(min.pvals, "ensembl_gene_id")
 t1 <- t1[min.pvals]
 t1 <- t1[sig.pf == min.pval]
-GO(unique(t1[pf < 8 & min.pval < 0.01, ensembl_gene_id]), all.genes, "L-LEKU-monosome-change", 0.05)
+t1 <- t1[min.pval < 0.01]
+GO(unique(t1[pf < 8, ensembl_gene_id]), all.genes, "L-LEKU-monosome-change", 0.05)
 GO(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), all.genes, "L-LEKU-light-change", 0.05)
 GO(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), all.genes, "L-LEKU-heavy-change", 0.05)
+GO(unique(t1[pf == 16, ensembl_gene_id]), all.genes, "L-LEKU-heavy16-change", 0.05)
 t1 <- t1[order(min.pval)]
-plot_genes(head(unique(t1[pf < 8 & min.pval < 0.01, ensembl_gene_id]), 20), "L-LEKU-monosome-change")
+plot_genes(head(unique(t1[pf < 8, ensembl_gene_id]), 20), "L-LEKU-monosome-change")
 plot_genes(head(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), 20), "L-LEKU-light-change")
 plot_genes(head(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), 20), "L-LEKU-heavy-change")
 plot_genes(head(unique(t1[pf == 16, ensembl_gene_id]), 20), "L-LEKU-heavy16-change")
@@ -64,11 +68,13 @@ min.pvals <- t1[,list(min.pval = min(sig.pf)),by = "ensembl_gene_id"]
 setkey(min.pvals, "ensembl_gene_id")
 t1 <- t1[min.pvals]
 t1 <- t1[sig.pf == min.pval]
-GO(unique(t1[pf < 8 & min.pval < 0.01, ensembl_gene_id]), all.genes, "LE-LEKU-monosome-change", 0.05)
+t1 <- t1[min.pval < 0.01]
+GO(unique(t1[pf < 8, ensembl_gene_id]), all.genes, "LE-LEKU-monosome-change", 0.05)
 GO(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), all.genes, "LE-LEKU-light-change", 0.05)
 GO(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), all.genes, "LE-LEKU-heavy-change", 0.05)
+GO(unique(t1[pf == 16, ensembl_gene_id]), all.genes, "LE-LEKU-heavy16-change", 0.05)
 t1 <- t1[order(min.pval)]
-plot_genes(head(unique(t1[pf < 8 & min.pval < 0.01, ensembl_gene_id]), 20), "LE-LEKU-monosome-change")
+plot_genes(head(unique(t1[pf < 8, ensembl_gene_id]), 20), "LE-LEKU-monosome-change")
 plot_genes(head(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), 20), "LE-LEKU-light-change")
 plot_genes(head(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), 20), "LE-LEKU-heavy-change")
 plot_genes(head(unique(t1[pf == 16, ensembl_gene_id]), 20), "LE-LEKU-heavy16-change")

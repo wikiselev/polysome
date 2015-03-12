@@ -1,28 +1,30 @@
 ---
 title: "Report for Manuel Diaz-Munoz"
 author: "Vladimir Kiselev"
-date: "12 February 2015"
+date: "13 March 2015"
 output:
   pdf_document:
     number_sections: yes
     toc: yes
 ---
 
-```{r, echo=FALSE, include=FALSE, cache=TRUE}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+knitr::opts_chunk$set(echo=FALSE)
+```
+
+```{r, include=FALSE}
 source("functions.R")
 initialize_gene_sets()
 ```
 
 # Polysome data
-
-## Pre-processing (process_data() function)
-
+## Pre-processing
 By removing HTML header in the original **original-data/p28_expression_genes.txt** file I obtained **original-data/p28_expression_genes_edited.txt** file, which I used as the main data file. I imported data from this file into R, then removed **Poly_L_2_17** sample from the data and then created data tables for statistical tests (**files/data-matrix.rds**), clustering and preliminary analysis (**files/data-matrix-norm.rds**), plotting (**files/plot-table.rds**) and annotating (**files/ann-table.rds**; annotation data was downloaded from Ensembl Biomart).
 
-## Correlations between samples
-All 156 Polysome sample were correlated against each other. The correlation between samples is quite low (even for technical replicates).
+*All fractions together (correlations + PCA)*
 
-```{r, echo=FALSE, cache=TRUE, fig.width=10, fig.height=10}
+```{r, fig.width=5, fig.height=4}
 library(gplots)
 cor_heatmap <- function(count.matrix, name) {
         # plot a correlation matrix from a count matrix
@@ -30,7 +32,7 @@ cor_heatmap <- function(count.matrix, name) {
         cor.matrix <- cor(count.matrix, method = "pearson")
         # plot correlation matrix in a file with 'name'
         #   plot(1)
-        heatmap.2(cor.matrix, Rowv = FALSE, Colv = FALSE, dendrogram = "none", col=bluered(9), breaks = 10, trace = "none", keysize = 0.5)
+        heatmap.2(cor.matrix, Rowv = FALSE, Colv = FALSE, dendrogram = "none", col=bluered(9), breaks = 10, trace = "none", margins = c(4,4))
 }
 d <- readRDS("files/data-matrix-norm.rds")
 
@@ -55,15 +57,12 @@ tmp <- as.matrix(d[,2:157])
 cor_heatmap(tmp[,order(colnames(tmp))], "polysome")
 ```
 
-## Principal Component Analysis (PCA) of Polysome data
-PCA analysis of of the Polysome shows that ~37% of data variance is explained by the first 3 principal components components.
-
-```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=5}
+```{r, fig.width=4, fig.height=2.5}
 library(ggplot2)
 res <- prcomp(d[,2:157])
 screeplot(res)
 ```
-```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=5}
+```{r, fig.width=4, fig.height=2.5}
 data <- as.data.frame(res$rotation[,1:3])
 data$cond <- rownames(data)
 data$cond <- unlist(lapply(strsplit(data$cond, "\\."), function(x){return(x[1])}))
@@ -72,28 +71,137 @@ data$cond <- unlist(lapply(strsplit(data$cond, "_"), function(x){return(x[1])}))
 ggplot(data, aes(PC1,PC2)) +
 geom_point(aes(shape = cond, color = as.factor(pf))) +
 scale_size(range = c(3, 6)) +
-theme_bw()
+theme(legend.key.size = unit(0.1, "cm"))
 ```
-```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=5}
+
+```{r, fig.width=4, fig.height=2.5}
 ggplot(data, aes(PC2,PC3)) +
 geom_point(aes(shape = cond, color = as.factor(pf))) +
 scale_size(range = c(3, 6)) +
-theme_bw()
+theme(legend.key.size = unit(0.1, "cm"))
 ```
-```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=5}
+```{r, fig.width=4, fig.height=2.5}
 ggplot(data, aes(PC1,PC3)) +
 geom_point(aes(shape = cond, color = as.factor(pf))) +
 scale_size(range = c(3, 6)) +
-theme_bw()
+theme(legend.key.size = unit(0.1, "cm"))
 ```
 
-## Statistical analysis
+*Monosome fractions (4-7) (correlations + PCA)*
+
+```{r, fig.width=5, fig.height=4}
+tmp1 <- as.matrix(d[,grepl("_[4-7]", colnames(d), perl = TRUE)])
+cor_heatmap(tmp1[,order(colnames(tmp1))], "polysome")
+```
+
+```{r, fig.width=4, fig.height=2.5}
+res <- prcomp(d[,grepl("_[4-7]", colnames(d), perl = TRUE)])
+screeplot(res)
+```
+```{r, fig.width=4, fig.height=2.5}
+data <- as.data.frame(res$rotation[,1:3])
+data$cond <- rownames(data)
+data$cond <- unlist(lapply(strsplit(data$cond, "\\."), function(x){return(x[1])}))
+data$pf <- as.numeric(unlist(lapply(strsplit(data$cond, "_"), function(x){return(x[2])})))
+data$cond <- unlist(lapply(strsplit(data$cond, "_"), function(x){return(x[1])}))
+ggplot(data, aes(PC1,PC2)) +
+geom_point(aes(shape = cond, color = as.factor(pf))) +
+scale_size(range = c(3, 6)) +
+theme(legend.key.size = unit(0.1, "cm"))
+```
+
+```{r, fig.width=4, fig.height=2.5}
+ggplot(data, aes(PC2,PC3)) +
+geom_point(aes(shape = cond, color = as.factor(pf))) +
+scale_size(range = c(3, 6)) +
+theme(legend.key.size = unit(0.1, "cm"))
+```
+```{r, fig.width=4, fig.height=2.5}
+ggplot(data, aes(PC1,PC3)) +
+geom_point(aes(shape = cond, color = as.factor(pf))) +
+scale_size(range = c(3, 6)) +
+theme(legend.key.size = unit(0.1, "cm"))
+```
+
+*Light fractions (8-10) (correlations + PCA)*
+
+```{r, fig.width=5, fig.height=4}
+tmp2 <- as.matrix(d[,grepl("_([8-9]|10)", colnames(d), perl = TRUE)])
+cor_heatmap(tmp2[,order(colnames(tmp2))], "polysome")
+```
+
+```{r, fig.width=4, fig.height=2.5}
+res <- prcomp(d[,grepl("_([8-9]|10)", colnames(d), perl = TRUE)])
+screeplot(res)
+```
+```{r, fig.width=4, fig.height=2.5}
+data <- as.data.frame(res$rotation[,1:3])
+data$cond <- rownames(data)
+data$cond <- unlist(lapply(strsplit(data$cond, "\\."), function(x){return(x[1])}))
+data$pf <- as.numeric(unlist(lapply(strsplit(data$cond, "_"), function(x){return(x[2])})))
+data$cond <- unlist(lapply(strsplit(data$cond, "_"), function(x){return(x[1])}))
+ggplot(data, aes(PC1,PC2)) +
+geom_point(aes(shape = cond, color = as.factor(pf))) +
+scale_size(range = c(3, 6)) +
+theme(legend.key.size = unit(0.1, "cm"))
+```
+
+```{r, fig.width=4, fig.height=2.5}
+ggplot(data, aes(PC2,PC3)) +
+geom_point(aes(shape = cond, color = as.factor(pf))) +
+scale_size(range = c(3, 6)) +
+theme(legend.key.size = unit(0.1, "cm"))
+```
+```{r, fig.width=4, fig.height=2.5}
+ggplot(data, aes(PC1,PC3)) +
+geom_point(aes(shape = cond, color = as.factor(pf))) +
+scale_size(range = c(3, 6)) +
+theme(legend.key.size = unit(0.1, "cm"))
+```
+
+*Heavy fractions (11-16) (correlations + PCA)*
+
+```{r, fig.width=5, fig.height=4}
+tmp3 <- as.matrix(d[,grepl("_1[1-6]", colnames(d), perl = TRUE)])
+cor_heatmap(tmp3[,order(colnames(tmp3))], "polysome")
+```
+
+```{r, fig.width=4, fig.height=2.5}
+res <- prcomp(d[,grepl("_1[1-6]", colnames(d), perl = TRUE)])
+screeplot(res)
+```
+```{r, fig.width=4, fig.height=2.5}
+data <- as.data.frame(res$rotation[,1:3])
+data$cond <- rownames(data)
+data$cond <- unlist(lapply(strsplit(data$cond, "\\."), function(x){return(x[1])}))
+data$pf <- as.numeric(unlist(lapply(strsplit(data$cond, "_"), function(x){return(x[2])})))
+data$cond <- unlist(lapply(strsplit(data$cond, "_"), function(x){return(x[1])}))
+ggplot(data, aes(PC1,PC2)) +
+geom_point(aes(shape = cond, color = as.factor(pf))) +
+scale_size(range = c(3, 6)) +
+theme(legend.key.size = unit(0.1, "cm"))
+```
+
+```{r, fig.width=4, fig.height=2.5}
+ggplot(data, aes(PC2,PC3)) +
+geom_point(aes(shape = cond, color = as.factor(pf))) +
+scale_size(range = c(3, 6)) +
+theme(legend.key.size = unit(0.1, "cm"))
+```
+```{r, fig.width=4, fig.height=2.5}
+ggplot(data, aes(PC1,PC3)) +
+geom_point(aes(shape = cond, color = as.factor(pf))) +
+scale_size(range = c(3, 6)) +
+theme(legend.key.size = unit(0.1, "cm"))
+```
+
+## Statistical comparisons of conditions in polysome data
 
 To identify changes in polysome fraction profile DESeq2 package was used (it can be used with any sequencing count data). First, a GLM (read.counts ~ condition + polysome.fraction + condition:polysome.fraction) was estimated for polysome data and, second, the likelihood ratio test was performed between the original and a reduced (read.counts ~ polysome.fraction) GLMs.
 
 Number of genes in each genes set:
 
-```{r, echo=FALSE, cache=TRUE}
+```{r}
 source("functions.R")
 initialize_gene_sets()
 ```
@@ -114,14 +222,13 @@ LEKU vs L: 2941
 
 LE vs LEKU: 1389
 
-
 Top 10 most significant genes in LE vs L comparison:
 
-```{r, echo=FALSE, cache=TRUE}
-head(res.l.le.deseq[order(res.l.le.deseq$padj), c(1,7,8,9)], 25)
+```{r, results='asis'}
+knitr::kable(head(res.l.le.deseq[order(res.l.le.deseq$padj), c(1,7,8,9)], 10))
 ```
 
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
+```{r, fig.width=7, fig.height=3}
 plot_genes <- function(gene.names){
         plot.data <- get_plot_data(gene.names)
         plot.data$pf <- as.character(plot.data$pf)
@@ -134,52 +241,48 @@ plot_genes <- function(gene.names){
                 labs(x = "Polysome fraction", y = "Read counts") +
                 theme_bw()
 }
-plot_genes(head(res.l.le.deseq[order(res.l.le.deseq$padj),], 25)$ensembl_gene_id)
+plot_genes(head(res.l.le.deseq[order(res.l.le.deseq$padj),], 10)$ensembl_gene_id)
 ```
 
+Top 10 most significant genes in LEKU vs L comparison:
 
-Top 25 most significant genes in LEKU vs L comparison:
-
-```{r, echo=FALSE, cache=TRUE}
-head(res.l.leku.deseq[order(res.l.leku.deseq$padj), c(1,7,8,9)], 25)
+```{r, results='asis'}
+knitr::kable(head(res.l.leku.deseq[order(res.l.leku.deseq$padj), c(1,7,8,9)], 10))
 ```
 
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(res.l.leku.deseq[order(res.l.leku.deseq$padj),], 25)$ensembl_gene_id)
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(res.l.leku.deseq[order(res.l.leku.deseq$padj),], 10)$ensembl_gene_id)
 ```
 
+Top 10 most significant genes in LEKU vs LE comparison:
 
-Top 25 most significant genes in LEKU vs LE comparison:
-
-```{r, echo=FALSE, cache=TRUE}
-head(res.le.leku.deseq[order(res.le.leku.deseq$padj), c(1,7,8,9)], 25)
+```{r, results='asis'}
+knitr::kable(head(res.le.leku.deseq[order(res.le.leku.deseq$padj), c(1,7,8,9)], 10))
 ```
 
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(res.le.leku.deseq[order(res.le.leku.deseq$padj),], 25)$ensembl_gene_id)
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(res.le.leku.deseq[order(res.le.leku.deseq$padj),], 10)$ensembl_gene_id)
 ```
 
+Let us now consider LE vs L comparison and plot top 10 polysome profiles for the shortest genes:
 
-Let us now consider LE vs L comparison and plot top 25 polysome profiles for the shortest:
-
-```{r, echo=FALSE, cache=TRUE}
-head(res.l.le.deseq[order(res.l.le.deseq$gene_length), c(1,7,8,9)], 25)
+```{r, results='asis'}
+knitr::kable(head(res.l.le.deseq[order(res.l.le.deseq$gene_length), c(1,7,8,9)], 10))
 ```
 
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(res.l.le.deseq[order(res.l.le.deseq$gene_length),], 25)$ensembl_gene_id)
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(res.l.le.deseq[order(res.l.le.deseq$gene_length),], 10)$ensembl_gene_id)
 ```
 
 and for the longest genes:
 
-```{r, echo=FALSE, cache=TRUE}
-head(res.l.le.deseq[order(-res.l.le.deseq$gene_length), c(1,7,8,9)], 25)
+```{r, results='asis'}
+knitr::kable(head(res.l.le.deseq[order(-res.l.le.deseq$gene_length), c(1,7,8,9)], 10))
 ```
 
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(res.l.le.deseq[order(-res.l.le.deseq$gene_length),], 25)$ensembl_gene_id)
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(res.l.le.deseq[order(-res.l.le.deseq$gene_length),], 10)$ensembl_gene_id)
 ```
-
 
 # RNA-Seq data
 
@@ -187,7 +290,7 @@ plot_genes(head(res.l.le.deseq[order(-res.l.le.deseq$gene_length),], 25)$ensembl
 
 Correlations of read numbers in 12 RNA-Seq samples are very high (even between different conditions):
 
-```{r, echo=FALSE, message=FALSE, cache=TRUE, fig.width=10, fig.height=10}
+```{r, message=FALSE, fig.width=5, fig.height=4}
 library(DESeq2)
 count_matrix_from_files <- function(files, normalized) {
         # this function create a count matrix from raw htseq read counts files
@@ -216,14 +319,14 @@ files <- list.files("htseq-count/", full.names = FALSE)
 count.matrix <- count_matrix_from_files(files, T)
 colnames(count.matrix) <- unlist(lapply(strsplit(colnames(count.matrix), "_"), function(x){return(x[2])}))
 count.matrix <- count.matrix[,order(colnames(count.matrix))]
-cor_heatmap(count.matrix, "rna-seq")
+cor.matrix <- cor(count.matrix, method = "pearson")
+heatmap.2(cor.matrix, Rowv = FALSE, Colv = FALSE, dendrogram = "none", col=bluered(9), breaks = 10, trace = "none", margins = c(5, 5))
 ```
 
-## Statistical analysis
+## Differential expression analysis
 For differential expression analysis I used already processed and aligned RNA-Seq data (BAM files provided by Manuel). BAM files were converted into SAM files using Samtools (**samtools.sh** script). Read counts in gene features were calculated using HT-Seq tool and **Mus\_musculus.GRCm38.78.gtf** feature file downloaded from Ensembl (**htseq.sh** script). Differential expression analysis was performed using DESeq2 package based on the obtained read count files. Condition comparisonsLE vs L, LE vs LEKU and LEKU vs L were tested for differential expression. 0.01 threshold of adjusted p-values was used as level of significance.
 
 Number of genes in each genes set:
-
 
 LE vs L: 8109
 
@@ -231,11 +334,9 @@ LEKU vs L: 7283
 
 LE vs LEKU: 4534
 
-
 A summarized Venn diagram showing an overlap of these three gene sets:
 
-
-```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, fig.align='center'}
+```{r, message=FALSE, warning=FALSE, fig.align='center'}
 library(Vennerable)
 venn <- function(list, is.weights) {
   v <- Venn(list)
@@ -245,222 +346,466 @@ venn(list("LE-vs-L" = rownames(le), "LEKU-vs-L" = rownames(leku),
         "LE-vs-LEKU" = rownames(le.leku)), T)
 ```
 
-# Dependencies between expression and translation activities
+# Correlations between expression and translation activities
 
-## LE vs L comparison.
+## LE vs L comparison
 
 Overlap of significant RNA-Seq genes and significan Polysome genes is shown in the following figure:
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, fig.align='center'}
+```{r, message=FALSE, warning=FALSE, fig.align='center'}
 venn(list("RNA-Seq" = rownames(le), "Polysome" = res.l.le.deseq$ensembl_gene_id),
         T)
 ```
 
-Let us consider separately these 2 gene sets (genes that change both expression level and polysome fraction; and genes that only change polysome fraction and do not change expression level at all).
+Let us consider separately purple and yellow (genes that change both expression level and polysome fraction; and genes that only change polysome fraction and do not change expression level at all).
+
+### Polysome changes, expression changes
 
 
-**Polysome changes, expression changes**
-
-
-```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+```{r, fig.width=4, fig.height=3}
 hist(log10(res.l.le.deseq[(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]$padj), xlab = "log10(padj)", main = "Distribution of p-values")
 ```
-```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+```{r, fig.width=4, fig.height=3}
 hist(log10(res.l.le.deseq[(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]$gene_length), xlab = "log10(gene_length)", main = "Distributions of gene lengths")
 ```
 
 
 
-```{r, echo=FALSE, cache=TRUE}
+```{r, results='asis'}
 t <- res.l.le.deseq[(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
 t <- t[order(t$padj),]
-head(t[, c(1,7,8,9)], 25)
+knitr::kable(head(t[, c(1,7,8,9)], 10))
 ```
 
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(t$ensembl_gene_id, 25))
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(t$ensembl_gene_id, 10))
 ```
 
+### Polysome changes, expression does not change
 
 
-```{r, echo=FALSE, cache=TRUE}
-t <- res.l.le.deseq[(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
-t <- t[order(t$gene_length),]
-head(t[, c(1,7,8,9)], 25)
-```
-
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(t$ensembl_gene_id, 25))
-```
-
-
-
-```{r, echo=FALSE, cache=TRUE}
-t <- res.l.le.deseq[(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
-t <- t[order(-t$gene_length),]
-head(t[, c(1,7,8,9)], 25)
-```
-
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(t$ensembl_gene_id, 25))
-```
-
-
-
-**Polysome changes, expression does not change**
-
-
-```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+```{r, fig.width=4, fig.height=3}
 hist(log10(res.l.le.deseq[!(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]$padj), xlab = "log10(padj)", main = "Distribution of p-values")
 ```
-```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+```{r, fig.width=4, fig.height=3}
 hist(log10(res.l.le.deseq[!(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]$gene_length), xlab = "log10(gene_length)", main = "Distributions of gene lengths")
 ```
 
 
 
-```{r, echo=FALSE, cache=TRUE}
+```{r, results='asis'}
 t <- res.l.le.deseq[!(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
 t <- t[order(t$padj),]
-head(t[, c(1,7,8,9)], 25)
+knitr::kable(head(t[, c(1,7,8,9)], 10))
 ```
 
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(t$ensembl_gene_id, 25))
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(t$ensembl_gene_id, 10))
+```
+
+These genes are the most interesting ones for us. We used a posthoc pairwise t-test to find genes with the most significant fraction change between conditions in monosome, light and heavy fractions. The significance p-value threshold used in the pairwise t-test was 0.01.
+
+Number of genes with significant changes in monosome (fractions < 8):
+
+```{r}
+t <- pol.all[!is.na(L.LE.all.padj) & L.LE.all.padj < 0.01 & !ensembl_gene_id %in% rownames(le)]
+genes <- t[, ensembl_gene_id]
+t1 <- posthoc.l.le[ensembl_gene_id %in% genes]
+setkey(t1, "ensembl_gene_id")
+min.pvals <- t1[,list(min.pval = min(sig.pf)),by = "ensembl_gene_id"]
+setkey(min.pvals, "ensembl_gene_id")
+t1 <- t1[min.pvals]
+t1 <- t1[sig.pf == min.pval]
+t1 <- t1[min.pval < 0.01]
+t1 <- t1[order(min.pval)]
+length(t1[pf < 8, ensembl_gene_id])
+```
+
+Top 10 of them:
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(unique(t1[pf < 8, ensembl_gene_id]), 10))
+```
+
+GO analysis of them:
+
+```{r, warning=FALSE, results='asis'}
+library(data.table)
+t <- as.data.table(read.csv("GO/L-LE-monosome-change/REVIGO.csv"))
+t <- t[order(log10.p.value)]
+t <- t[eliminated == 1]
+knitr::kable(head(t[, list(term_ID, description, log10.p.value)], 20))
+```
+
+
+![](GO/L-LE-monosome-change/revigo_treemap.pdf)
+
+Number of genes with significant changes in light fractions (8 <= fractions <= 10):
+
+```{r}
+length(t1[pf >= 8 & pf <= 10, ensembl_gene_id])
+```
+
+Top 10 of them:
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), 10))
+```
+
+GO analysis of them:
+
+```{r, results='asis'}
+t <- as.data.table(read.csv("GO/L-LE-light-change/REVIGO.csv"))
+t <- t[order(log10.p.value)]
+t <- t[eliminated == 1]
+knitr::kable(head(t[, list(term_ID, description, log10.p.value)], 20))
+```
+
+
+![](GO/L-LE-light-change/revigo_treemap.pdf)
+
+
+Number of genes with significant changes in heavy fractions excluding fraction 16 (fractions > 10 & fractions != 16):
+
+```{r}
+length(t1[pf > 10 & pf != 16, ensembl_gene_id])
+```
+
+Top 10 of them:
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), 10))
+```
+
+GO analysis of them:
+
+```{r, results='asis'}
+t <- as.data.table(read.csv("GO/L-LE-heavy-change/REVIGO.csv"))
+t <- t[order(log10.p.value)]
+t <- t[eliminated == 1]
+knitr::kable(head(t[, list(term_ID, description, log10.p.value)], 20))
+```
+
+
+![](GO/L-LE-heavy-change/revigo_treemap.pdf)
+
+Number of genes with significant changes in heavy (16) fractions (fractions == 16):
+
+```{r}
+length(t1[pf == 16, ensembl_gene_id])
+```
+
+Top 10 of them:
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(unique(t1[pf == 16, ensembl_gene_id]), 10))
 ```
 
 
 
-```{r, echo=FALSE, cache=TRUE}
-t <- res.l.le.deseq[!(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
-t <- t[order(t$gene_length),]
-head(t[, c(1,7,8,9)], 25)
-```
-
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(t$ensembl_gene_id, 25))
-```
-
-
-
-```{r, echo=FALSE, cache=TRUE}
-t <- res.l.le.deseq[!(res.l.le.deseq$ensembl_gene_id %in% rownames(le)), ]
-t <- t[order(-t$gene_length),]
-head(t[, c(1,7,8,9)], 25)
-```
-
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(t$ensembl_gene_id, 25))
-```
-
-
-
-Genes in which both expression and polysome fraction change have more significant p-values for differences between LE and L conditions. However, the gene legnth distrubutions are approximately the same for both conditions.
-
-
-## LE vs LEKU comparison.
+## LEKU vs L comparison
 
 Overlap of significant RNA-Seq genes and significan Polysome genes is shown in the following figure:
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, fig.align='center'}
+```{r, message=FALSE, warning=FALSE, fig.align='center'}
+venn(list("RNA-Seq" = rownames(leku), "Polysome" = res.l.leku.deseq$ensembl_gene_id),
+        T)
+```
+
+Let us consider separately purple and yellow (genes that change both expression level and polysome fraction; and genes that only change polysome fraction and do not change expression level at all).
+
+### Polysome changes, expression changes
+
+
+```{r, fig.width=4, fig.height=3}
+hist(log10(res.l.leku.deseq[(res.l.leku.deseq$ensembl_gene_id %in% rownames(leku)), ]$padj), xlab = "log10(padj)", main = "Distribution of p-values")
+```
+```{r, fig.width=4, fig.height=3}
+hist(log10(res.l.leku.deseq[(res.l.leku.deseq$ensembl_gene_id %in% rownames(leku)), ]$gene_length), xlab = "log10(gene_length)", main = "Distributions of gene lengths")
+```
+
+
+
+```{r, results='asis'}
+t <- res.l.leku.deseq[(res.l.leku.deseq$ensembl_gene_id %in% rownames(leku)), ]
+t <- t[order(t$padj),]
+knitr::kable(head(t[, c(1,7,8,9)], 10))
+```
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(t$ensembl_gene_id, 10))
+```
+
+### Polysome changes, expression does not change
+
+
+```{r, fig.width=4, fig.height=3}
+hist(log10(res.l.leku.deseq[!(res.l.leku.deseq$ensembl_gene_id %in% rownames(leku)), ]$padj), xlab = "log10(padj)", main = "Distribution of p-values")
+```
+```{r, fig.width=4, fig.height=3}
+hist(log10(res.l.leku.deseq[!(res.l.leku.deseq$ensembl_gene_id %in% rownames(leku)), ]$gene_length), xlab = "log10(gene_length)", main = "Distributions of gene lengths")
+```
+
+
+
+```{r, results='asis'}
+t <- res.l.leku.deseq[!(res.l.leku.deseq$ensembl_gene_id %in% rownames(le)), ]
+t <- t[order(t$padj),]
+knitr::kable(head(t[, c(1,7,8,9)], 10))
+```
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(t$ensembl_gene_id, 10))
+```
+
+These genes are the most interesting ones for us. We used a posthoc pairwise t-test to find genes with the most significant fraction change between conditions in monosome, light and heavy fractions. The significance p-value threshold used in the pairwise t-test was 0.01.
+
+Number of genes with significant changes in monosome (fractions < 8):
+
+```{r}
+t <- pol.all[!is.na(L.LEKU.all.padj) & L.LEKU.all.padj < 0.01 & !ensembl_gene_id %in% rownames(leku)]
+genes <- t[, ensembl_gene_id]
+t1 <- posthoc.l.leku[ensembl_gene_id %in% genes]
+setkey(t1, "ensembl_gene_id")
+min.pvals <- t1[,list(min.pval = min(sig.pf)),by = "ensembl_gene_id"]
+setkey(min.pvals, "ensembl_gene_id")
+t1 <- t1[min.pvals]
+t1 <- t1[sig.pf == min.pval]
+t1 <- t1[min.pval < 0.01]
+t1 <- t1[order(min.pval)]
+length(t1[pf < 8, ensembl_gene_id])
+```
+
+Top 10 of them:
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(unique(t1[pf < 8, ensembl_gene_id]), 10))
+```
+
+GO analysis of them:
+
+```{r, warning=FALSE, results='asis'}
+library(data.table)
+t <- as.data.table(read.csv("GO/L-LEKU-monosome-change/REVIGO.csv"))
+t <- t[order(log10.p.value)]
+t <- t[eliminated == 1]
+knitr::kable(head(t[, list(term_ID, description, log10.p.value)], 20))
+```
+
+
+![](GO/L-LEKU-monosome-change/revigo_treemap.pdf)
+
+Number of genes with significant changes in light fractions (8 <= fractions <= 10):
+
+```{r}
+length(t1[pf >= 8 & pf <= 10, ensembl_gene_id])
+```
+
+Top 10 of them:
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), 10))
+```
+
+GO analysis of them:
+
+```{r, results='asis'}
+t <- as.data.table(read.csv("GO/L-LEKU-light-change/REVIGO.csv"))
+t <- t[order(log10.p.value)]
+t <- t[eliminated == 1]
+knitr::kable(head(t[, list(term_ID, description, log10.p.value)], 20))
+```
+
+
+![](GO/L-LEKU-light-change/revigo_treemap.pdf)
+
+
+Number of genes with significant changes in heavy fractions excluding fraction 16 (fractions > 10 & fractions != 16):
+
+```{r}
+length(t1[pf > 10 & pf != 16, ensembl_gene_id])
+```
+
+Top 10 of them:
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), 10))
+```
+
+GO analysis of them:
+
+```{r, results='asis'}
+t <- as.data.table(read.csv("GO/L-LEKU-heavy-change/REVIGO.csv"))
+t <- t[order(log10.p.value)]
+t <- t[eliminated == 1]
+knitr::kable(head(t[, list(term_ID, description, log10.p.value)], 20))
+```
+
+
+![](GO/L-LEKU-heavy-change/revigo_treemap.pdf)
+
+Number of genes with significant changes in heavy (16) fractions (fractions == 16):
+
+```{r}
+length(t1[pf == 16, ensembl_gene_id])
+```
+
+Top 10 of them:
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(unique(t1[pf == 16, ensembl_gene_id]), 10))
+```
+
+
+## LE vs LEKU comparison
+
+Overlap of significant RNA-Seq genes and significan Polysome genes is shown in the following figure:
+
+```{r, message=FALSE, warning=FALSE, fig.align='center'}
 venn(list("RNA-Seq" = rownames(le.leku), "Polysome" = res.le.leku.deseq$ensembl_gene_id),
         T)
 ```
 
-Let us consider separately these 2 gene sets (genes that change both expression level and polysome fraction; and genes that only change polysome fraction and do not change expression level at all).
+Let us consider separately purple and yellow (genes that change both expression level and polysome fraction; and genes that only change polysome fraction and do not change expression level at all).
+
+### Polysome changes, expression changes
 
 
-**Polysome changes, expression changes**
-
-
-```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+```{r, fig.width=4, fig.height=3}
 hist(log10(res.le.leku.deseq[(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]$padj), xlab = "log10(padj)", main = "Distribution of p-values")
 ```
-```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+```{r, fig.width=4, fig.height=3}
 hist(log10(res.le.leku.deseq[(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]$gene_length), xlab = "log10(gene_length)", main = "Distributions of gene lengths")
 ```
 
 
 
-```{r, echo=FALSE, cache=TRUE}
+```{r, results='asis'}
 t <- res.le.leku.deseq[(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
 t <- t[order(t$padj),]
-head(t[, c(1,7,8,9)], 25)
+knitr::kable(head(t[, c(1,7,8,9)], 10))
 ```
 
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(t$ensembl_gene_id, 25))
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(t$ensembl_gene_id, 10))
 ```
 
+### Polysome changes, expression does not change
 
 
-```{r, echo=FALSE, cache=TRUE}
-t <- res.le.leku.deseq[(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
-t <- t[order(t$gene_length),]
-head(t[, c(1,7,8,9)], 25)
-```
-
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(t$ensembl_gene_id, 25))
-```
-
-
-
-```{r, echo=FALSE, cache=TRUE}
-t <- res.le.leku.deseq[(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
-t <- t[order(-t$gene_length),]
-head(t[, c(1,7,8,9)], 25)
-```
-
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(t$ensembl_gene_id, 25))
-```
-
-
-
-**Polysome changes, expression does not change**
-
-
-```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+```{r, fig.width=4, fig.height=3}
 hist(log10(res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]$padj), xlab = "log10(padj)", main = "Distribution of p-values")
 ```
-```{r, echo=FALSE, cache=TRUE, fig.width=4, fig.height=4}
+```{r, fig.width=4, fig.height=3}
 hist(log10(res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]$gene_length), xlab = "log10(gene_length)", main = "Distributions of gene lengths")
 ```
 
 
 
-```{r, echo=FALSE, cache=TRUE}
-t <- res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
+```{r, results='asis'}
+t <- res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le)), ]
 t <- t[order(t$padj),]
-head(t[, c(1,7,8,9)], 25)
+knitr::kable(head(t[, c(1,7,8,9)], 10))
 ```
 
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(t$ensembl_gene_id, 25))
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(t$ensembl_gene_id, 10))
+```
+
+These genes are the most interesting ones for us. We used a posthoc pairwise t-test to find genes with the most significant fraction change between conditions in monosome, light and heavy fractions. The significance p-value threshold used in the pairwise t-test was 0.01.
+
+Number of genes with significant changes in monosome (fractions < 8):
+
+```{r}
+t <- pol.all[!is.na(LE.LEKU.all.padj) & LE.LEKU.all.padj < 0.01 & !ensembl_gene_id %in% rownames(le.leku)]
+genes <- t[, ensembl_gene_id]
+t1 <- posthoc.le.leku[ensembl_gene_id %in% genes]
+setkey(t1, "ensembl_gene_id")
+min.pvals <- t1[,list(min.pval = min(sig.pf)),by = "ensembl_gene_id"]
+setkey(min.pvals, "ensembl_gene_id")
+t1 <- t1[min.pvals]
+t1 <- t1[sig.pf == min.pval]
+t1 <- t1[min.pval < 0.01]
+t1 <- t1[order(min.pval)]
+length(t1[pf < 8, ensembl_gene_id])
+```
+
+Top 10 of them:
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(unique(t1[pf < 8, ensembl_gene_id]), 10))
+```
+
+GO analysis of them:
+
+```{r, warning=FALSE, results='asis'}
+library(data.table)
+t <- as.data.table(read.csv("GO/LE-LEKU-monosome-change/REVIGO.csv"))
+t <- t[order(log10.p.value)]
+t <- t[eliminated == 1]
+knitr::kable(head(t[, list(term_ID, description, log10.p.value)], 20))
 ```
 
 
+![](GO/LE-LEKU-monosome-change/revigo_treemap.pdf)
 
-```{r, echo=FALSE, cache=TRUE}
-t <- res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
-t <- t[order(t$gene_length),]
-head(t[, c(1,7,8,9)], 25)
+Number of genes with significant changes in light fractions (8 <= fractions <= 10):
+
+```{r}
+length(t1[pf >= 8 & pf <= 10, ensembl_gene_id])
 ```
 
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(t$ensembl_gene_id, 25))
+Top 10 of them:
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(unique(t1[pf >= 8 & pf <= 10, ensembl_gene_id]), 10))
+```
+
+GO analysis of them:
+
+```{r, results='asis'}
+t <- as.data.table(read.csv("GO/LE-LEKU-light-change/REVIGO.csv"))
+t <- t[order(log10.p.value)]
+t <- t[eliminated == 1]
+knitr::kable(head(t[, list(term_ID, description, log10.p.value)], 20))
 ```
 
 
+![](GO/LE-LEKU-light-change/revigo_treemap.pdf)
 
-```{r, echo=FALSE, cache=TRUE}
-t <- res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)), ]
-t <- t[order(-t$gene_length),]
-head(t[, c(1,7,8,9)], 25)
+
+Number of genes with significant changes in heavy fractions excluding fraction 16 (fractions > 10 & fractions != 16):
+
+```{r}
+length(t1[pf > 10 & pf != 16, ensembl_gene_id])
 ```
 
-```{r, echo=FALSE, cache=TRUE, fig.width=8, fig.height=5}
-plot_genes(head(t$ensembl_gene_id, 25))
+Top 10 of them:
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(unique(t1[pf > 10 & pf != 16, ensembl_gene_id]), 10))
 ```
 
+GO analysis of them:
+
+```{r, results='asis'}
+t <- as.data.table(read.csv("GO/LE-LEKU-heavy-change/REVIGO.csv"))
+t <- t[order(log10.p.value)]
+t <- t[eliminated == 1]
+knitr::kable(head(t[, list(term_ID, description, log10.p.value)], 20))
+```
+
+
+![](GO/LE-LEKU-heavy-change/revigo_treemap.pdf)
+
+Number of genes with significant changes in heavy (16) fractions (fractions == 16):
+
+```{r}
+length(t1[pf == 16, ensembl_gene_id])
+```
+
+Top 10 of them:
+
+```{r, fig.width=7, fig.height=3}
+plot_genes(head(unique(t1[pf == 16, ensembl_gene_id]), 10))
+```
