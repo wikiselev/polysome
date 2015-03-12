@@ -501,7 +501,16 @@ Top 10 of them:
 plot_genes(head(unique(t1[pf == 16, ensembl_gene_id]), 10))
 ```
 
+GO analysis of them:
 
+```{r, results='asis'}
+t <- as.data.table(read.csv("GO/L-LE-heavy16-change/REVIGO.csv"))
+t <- t[order(log10.p.value)]
+t <- t[eliminated == 1]
+knitr::kable(head(t[, list(term_ID, description, log10.p.value)], 20))
+```
+
+![](GO/L-LE-heavy16-change/revigo_treemap.pdf)
 
 ## LEKU vs L comparison
 
@@ -656,6 +665,16 @@ Top 10 of them:
 plot_genes(head(unique(t1[pf == 16, ensembl_gene_id]), 10))
 ```
 
+GO analysis of them:
+
+```{r, results='asis'}
+t <- as.data.table(read.csv("GO/L-LEKU-heavy16-change/REVIGO.csv"))
+t <- t[order(log10.p.value)]
+t <- t[eliminated == 1]
+knitr::kable(head(t[, list(term_ID, description, log10.p.value)], 20))
+```
+
+![](GO/L-LEKU-heavy16-change/revigo_treemap.pdf)
 
 ## LE vs LEKU comparison
 
