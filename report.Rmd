@@ -34,7 +34,7 @@ cor_heatmap <- function(count.matrix, name) {
         #   plot(1)
         heatmap.2(cor.matrix, Rowv = FALSE, Colv = FALSE, dendrogram = "none", col=bluered(9), breaks = 10, trace = "none", margins = c(4,4))
 }
-d <- readRDS("files/data-matrix-norm.rds")
+d <- readRDS("files/data-matrix-norm-scaled.rds")
 
 cols <- colnames(d[,2:157])
 j <- 4
@@ -211,16 +211,6 @@ LE vs L: 4755
 LEKU vs L: 4770
 
 LE vs LEKU: 1402
-
-
-For comparison, previous results from ANOVA analysis (will not use them anymore):
-
-
-LE vs L: 4080
-
-LEKU vs L: 2941
-
-LE vs LEKU: 1389
 
 Top 10 most significant genes in LE vs L comparison:
 
@@ -408,8 +398,8 @@ These genes are the most interesting ones for us. We used a posthoc pairwise t-t
 Number of genes with significant changes in monosome (fractions < 8):
 
 ```{r}
-t <- pol.all[!is.na(L.LE.all.padj) & L.LE.all.padj < 0.01 & !ensembl_gene_id %in% rownames(le)]
-genes <- t[, ensembl_gene_id]
+t <- res.l.le.deseq[!(res.l.le.deseq$ensembl_gene_id %in% rownames(le)),]
+genes <- t$ensembl_gene_id
 t1 <- posthoc.l.le[ensembl_gene_id %in% genes]
 setkey(t1, "ensembl_gene_id")
 min.pvals <- t1[,list(min.pval = min(sig.pf)),by = "ensembl_gene_id"]
@@ -572,8 +562,8 @@ These genes are the most interesting ones for us. We used a posthoc pairwise t-t
 Number of genes with significant changes in monosome (fractions < 8):
 
 ```{r}
-t <- pol.all[!is.na(L.LEKU.all.padj) & L.LEKU.all.padj < 0.01 & !ensembl_gene_id %in% rownames(leku)]
-genes <- t[, ensembl_gene_id]
+t <- res.l.leku.deseq[!(res.l.leku.deseq$ensembl_gene_id %in% rownames(leku)),]
+genes <- t$ensembl_gene_id
 t1 <- posthoc.l.leku[ensembl_gene_id %in% genes]
 setkey(t1, "ensembl_gene_id")
 min.pvals <- t1[,list(min.pval = min(sig.pf)),by = "ensembl_gene_id"]
@@ -736,8 +726,8 @@ These genes are the most interesting ones for us. We used a posthoc pairwise t-t
 Number of genes with significant changes in monosome (fractions < 8):
 
 ```{r}
-t <- pol.all[!is.na(LE.LEKU.all.padj) & LE.LEKU.all.padj < 0.01 & !ensembl_gene_id %in% rownames(le.leku)]
-genes <- t[, ensembl_gene_id]
+t <- res.le.leku.deseq[!(res.le.leku.deseq$ensembl_gene_id %in% rownames(le.leku)),]
+genes <- t$ensembl_gene_id
 t1 <- posthoc.le.leku[ensembl_gene_id %in% genes]
 setkey(t1, "ensembl_gene_id")
 min.pvals <- t1[,list(min.pval = min(sig.pf)),by = "ensembl_gene_id"]

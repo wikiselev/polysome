@@ -1,5 +1,5 @@
 get_plot_data <- function(genes) {
-        plot.data <- readRDS("files/plot-table.rds")
+        plot.data <- as.data.table(readRDS("files/plot-table.rds"))
         # if genes are represented by ensembl ids
         if(grepl("ENSMUSG000", genes[1])){
                 return(plot.data[ensembl_gene_id %in% genes])

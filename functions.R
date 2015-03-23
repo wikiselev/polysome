@@ -11,7 +11,6 @@ library(gplots)
 
 source("preliminary.R")
 source("clustering.R")
-source("anova.R")
 source("plot.R")
 source("diff-expr.R")
 source("go.R")

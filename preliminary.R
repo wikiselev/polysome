@@ -38,7 +38,7 @@ rename_samples_plot <- function(d) {
 }
 
 pca <- function() {
-  d <- readRDS("files/data-matrix-norm.rds")
+  d <- readRDS("files/data-matrix-norm-scaled.rds")
 
   cols <- colnames(d[,2:157])
   j <- 4
@@ -107,27 +107,27 @@ pca <- function() {
 }
 
 count_matrix_from_files <- function(files, normalized) {
-  # this function create a count matrix from raw htseq read counts files
-  # it uses DESeq2 library to construct the matrix
+        # this function create a count matrix from raw htseq read counts files
+        # it uses DESeq2 library to construct the matrix
 
-  # create a design matrix for DESeq2
-  sample.name <- sapply(strsplit(files, "_trimmed"), "[[", 1)
-  condition <- sapply(strsplit(sample.name, "_"), "[[", 1)
-  samples <- data.frame(sample.name = sample.name,
-    file.name = paste0("htseq-count/", files),
-    condition = condition)
-  samples$condition <- factor(samples$condition,
-    levels = unique(samples$condition))
+        # create a design matrix for DESeq2
+        sample.name <- sapply(strsplit(files, "_trimmed"), "[[", 1)
+        condition <- sapply(strsplit(sample.name, "_"), "[[", 1)
+        samples <- data.frame(sample.name = sample.name,
+                              file.name = paste0("htseq-count/", files),
+                              condition = condition)
+        samples$condition <- factor(samples$condition,
+                                    levels = unique(samples$condition))
 
-  # import data from files using 'samples' design matrix
-  cds <- DESeqDataSetFromHTSeqCount(sampleTable = samples,
-    directory = ".", design = ~ condition)
+        # import data from files using 'samples' design matrix
+        cds <- DESeqDataSetFromHTSeqCount(sampleTable = samples,
+                                          directory = ".", design = ~ condition)
 
-  # if normalized is TRUE then the count matrix is normalized by library size
-  # using estimateSizeFactors function of DESeq2
-  if (normalized) {
-    cds <- estimateSizeFactors(cds)
-    return(counts(cds, normalized = TRUE))
-  } # otherwise return the raw matrix
-  else {return(counts(cds))}
+        # if normalized is TRUE then the count matrix is normalized by library size
+        # using estimateSizeFactors function of DESeq2
+        if (normalized) {
+                cds <- estimateSizeFactors(cds)
+                return(counts(cds, normalized = TRUE))
+        } # otherwise return the raw matrix
+        else {return(counts(cds))}
 }
