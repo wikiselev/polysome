@@ -58,7 +58,7 @@ diff_expr_polysome <- function() {
         # taking into account all fractions
         diff_expr_two_time_courses_cond("L", "LE")
         diff_expr_two_time_courses_cond("LE", "LEKU")
-        diff_expr_two_time_courses_cond("L", "LEU")
+        diff_expr_two_time_courses_cond("L", "LEKU")
 }
 
 diff_expr_rna <- function() {
