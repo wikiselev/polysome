@@ -13,7 +13,7 @@ diff_expr_pairwise <- function(cond1, cond2) {
 
   # create a DESeqDataSet with interaction term in the design formula
   cds <- DESeqDataSetFromHTSeqCount(sampleTable = samples,
-    directory = "../htseq-count",
+    directory = "htseq-count",
     design = ~ condition)
 
   # perform the main computation

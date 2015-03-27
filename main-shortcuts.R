@@ -108,7 +108,6 @@ posthoc_analysis <- function() {
         d <- readRDS("files/data-table.rds")
         d <- d[order(cond, pf)]
 
-        # also need to reduce a number of genes - the whole data set is too large
         res <- d[,list(sig.pf = posthoc_test_pf(data.frame(value = value, cond = cond, pf = pf), "L", "LE")), by = "ensembl_gene_id"]
         res$pf <- rep(4:16, length(unique(d[,ensembl_gene_id])))
         saveRDS(res, "files/posthoc-pf-sig-L-LE.rds")

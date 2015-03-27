@@ -1,7 +1,7 @@
 ---
 title: "Report for Manuel Diaz-Munoz"
 author: "Vladimir Kiselev"
-date: "13 March 2015"
+date: "27 March 2015"
 output:
   pdf_document:
     number_sections: yes
